@@ -200,6 +200,15 @@ consoleintr(int (*getc)(void))
       // procdump() locks cons.lock indirectly; invoke later
       doprocdump = 1;
       break;
+    case C('O'):  // 
+    
+      break;
+    case C('T'):  // 
+
+      break;
+    case C('A'):  // 
+      
+      break;
     case C('U'):  // Kill line.
       while(input.e != input.w &&
             input.buf[(input.e-1) % INPUT_BUF] != '\n'){
