@@ -22,7 +22,11 @@ main(void)
   for(;;){
     printf(1, "init: starting sh\n");
     printf(1, "Group 4:\n");
-    
+    printf(1, "Ali Ebrahimi\n");
+    printf(1, "Parmida Zarghami\n");
+    printf(1, "Soroosh Hamedi\n");
+
+
     pid = fork();
     if(pid < 0){
       printf(1, "init: fork failed\n");
