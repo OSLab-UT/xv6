@@ -201,10 +201,21 @@ consoleintr(int (*getc)(void))
       doprocdump = 1;
       break;
     case C('O'):  // 
-    
-      break;
-    case C('T'):  // 
 
+      break;
+    case C('T'):  // Reverse the last two characters
+      if(input.e != input.w && input.e - 1 != input.w){
+        char first = input.buf[(input.e-1) % INPUT_BUF];
+        consputc(BACKSPACE);
+        input.e--;
+        char second = input.buf[(input.e-1) % INPUT_BUF];
+        input.e--;
+        consputc(BACKSPACE);
+        consputc(first);
+        input.e++;
+        consputc(second);
+        input.e++;
+      }
       break;
     case C('A'):  // 
       
