@@ -212,8 +212,10 @@ consoleintr(int (*getc)(void))
         input.e--;
         consputc(BACKSPACE);
         consputc(first);
+        input.buf[(input.e) % INPUT_BUF] = first;
         input.e++;
         consputc(second);
+        input.buf[(input.e) % INPUT_BUF] = second;
         input.e++;
       }
       break;
