@@ -16,8 +16,6 @@
 #include "x86.h"
 
 static void consputc(int);
-static void indicatorLeft();
-static void indicatorRight();
 
 static int panicked = 0;
 
@@ -197,8 +195,8 @@ void
 consoleintr(int (*getc)(void))
 {
   int c, doprocdump = 0;
-  char stringToCapitalize[INPUT_BUF];
-  int strSize = 0;
+  //char stringToCapitalize[INPUT_BUF];
+  //int strSize = 0;
 
   acquire(&cons.lock);
   while((c = getc()) >= 0){
@@ -206,37 +204,6 @@ consoleintr(int (*getc)(void))
     case C('P'):  // Process listing.
       // procdump() locks cons.lock indirectly; invoke later
       doprocdump = 1;
-      break;
-
-    case C('Q'): // Moves indicator to the left
-      indicatorLeft();
-      break;
-
-    case C('W'): // Moves indicator to the right
-      indicatorRight();
-      break;
-
-    case C('O'):  // Capitalizes the final word in the input
-
-      while(input.e != input.w && input.buf[(input.e-1) % INPUT_BUF] != ' ')
-      {
-        stringToCapitalize[strSize++] = input.buf[(input.e-1) % INPUT_BUF];
-        consputc(BACKSPACE);
-        input.e--;
-      }
-
-      while(strSize > 0)
-      {
-        strSize--;
-        char capitalized = stringToCapitalize[strSize];
-        
-        if( stringToCapitalize[strSize] <= 'z' && stringToCapitalize[strSize] >= 'a') 
-          capitalized = stringToCapitalize[strSize] - 'a' + 'A';
-
-        consputc(capitalized);
-        input.buf[(input.e - 1) % INPUT_BUF] = capitalized;
-        input.e++;
-      }
       break;
 
     case C('U'):  // Kill line.
@@ -271,25 +238,6 @@ consoleintr(int (*getc)(void))
   }
 }
 
-void indicatorLeft()
-{
-  if(input.e != input.w)
-  {
-    cgaputc(INDIC_LEFT);
-    input.e--;
-  }
-}
-
-const char MOVE_RIGHT = ' ';
-void indicatorRight()
-{
-
-  if(input.e != C('D')) //EOF
-  {
-    consputc(MOVE_RIGHT);
-    input.e++;
-  }
-}
 
 int
 consoleread(struct inode *ip, char *dst, int n)
