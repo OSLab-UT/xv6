@@ -128,6 +128,7 @@ panic(char *s)
 //PAGEBREAK: 50
 #define BACKSPACE 0x100
 #define CRTPORT 0x3d4
+const int INDIC_LEFT = -1;
 static ushort *crt = (ushort*)P2V(0xb8000);  // CGA memory
 
 static void
@@ -143,7 +144,7 @@ cgaputc(int c)
 
   if(c == '\n')
     pos += 80 - pos%80;
-  else if(c == BACKSPACE){
+  else if(c == BACKSPACE || c == INDIC_LEFT){
     if(pos > 0) --pos;
   } else
     crt[pos++] = (c&0xff) | 0x0700;  // black on white
@@ -161,7 +162,9 @@ cgaputc(int c)
   outb(CRTPORT+1, pos>>8);
   outb(CRTPORT, 15);
   outb(CRTPORT+1, pos);
-  crt[pos] = ' ' | 0x0700;
+
+  if(c != INDIC_LEFT)
+    crt[pos] = ' ' | 0x0700;
 }
 
 void
@@ -222,9 +225,14 @@ consoleintr(int (*getc)(void))
         input.e--;
       }
 
-      for(int i = strSize - 1; i >= 0; i--)
+      while(strSize > 0)
       {
-        char capitalized = stringToCapitalize[i] - 'a' + 'A';
+        strSize--;
+        char capitalized = stringToCapitalize[strSize];
+        
+        if( stringToCapitalize[strSize] <= 'z' && stringToCapitalize[strSize] >= 'a') 
+          capitalized = stringToCapitalize[strSize] - 'a' + 'A';
+
         consputc(capitalized);
         input.buf[(input.e - 1) % INPUT_BUF] = capitalized;
         input.e++;
@@ -267,7 +275,7 @@ void indicatorLeft()
 {
   if(input.e != input.w)
   {
-    cgaputc(BACKSPACE);
+    cgaputc(INDIC_LEFT);
     input.e--;
   }
 }
@@ -278,7 +286,7 @@ void indicatorRight()
 
   if(input.e != C('D')) //EOF
   {
-    cgaputc(MOVE_RIGHT);
+    consputc(MOVE_RIGHT);
     input.e++;
   }
 }
