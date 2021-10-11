@@ -16,6 +16,8 @@
 #include "x86.h"
 
 static void consputc(int);
+static void indicatorLeft();
+static void indicatorRight();
 
 static int panicked = 0;
 
@@ -192,6 +194,8 @@ void
 consoleintr(int (*getc)(void))
 {
   int c, doprocdump = 0;
+  char stringToCapitalize[INPUT_BUF];
+  int strSize = 0;
 
   acquire(&cons.lock);
   while((c = getc()) >= 0){
@@ -200,6 +204,33 @@ consoleintr(int (*getc)(void))
       // procdump() locks cons.lock indirectly; invoke later
       doprocdump = 1;
       break;
+
+    case C('Q'): // Moves indicator to the left
+      indicatorLeft();
+      break;
+
+    case C('W'): // Moves indicator to the right
+      indicatorRight();
+      break;
+
+    case C('O'):  // Capitalizes the final word in the input
+
+      while(input.e != input.w && input.buf[(input.e-1) % INPUT_BUF] != ' ')
+      {
+        stringToCapitalize[strSize++] = input.buf[(input.e-1) % INPUT_BUF];
+        consputc(BACKSPACE);
+        input.e--;
+      }
+
+      for(int i = strSize - 1; i >= 0; i--)
+      {
+        char capitalized = stringToCapitalize[i] - 'a' + 'A';
+        consputc(capitalized);
+        input.buf[(input.e - 1) % INPUT_BUF] = capitalized;
+        input.e++;
+      }
+      break;
+
     case C('U'):  // Kill line.
       while(input.e != input.w &&
             input.buf[(input.e-1) % INPUT_BUF] != '\n'){
@@ -229,6 +260,26 @@ consoleintr(int (*getc)(void))
   release(&cons.lock);
   if(doprocdump) {
     procdump();  // now call procdump() wo. cons.lock held
+  }
+}
+
+void indicatorLeft()
+{
+  if(input.e != input.w)
+  {
+    cgaputc(BACKSPACE);
+    input.e--;
+  }
+}
+
+const char MOVE_RIGHT = ' ';
+void indicatorRight()
+{
+
+  if(input.e != C('D')) //EOF
+  {
+    cgaputc(MOVE_RIGHT);
+    input.e++;
   }
 }
 
