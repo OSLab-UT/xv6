@@ -201,6 +201,18 @@ consoleintr(int (*getc)(void))
   acquire(&cons.lock);
   while((c = getc()) >= 0){
     switch(c){
+    case C('A'):
+      char temp_buf[80];
+      int t_b_index = 0;
+      while(input.e != input.w &&
+            input.buf[(input.e-1) % INPUT_BUF] != '\n'){
+        input.e--;
+        temp_buf[t_b_index] = input.buf[input.e % INPUT_BUF];
+        t_b_index++;
+        cgaputc(INDIC_LEFT);
+      }
+      break;
+
     case C('P'):  // Process listing.
       // procdump() locks cons.lock indirectly; invoke later
       doprocdump = 1;
@@ -237,7 +249,6 @@ consoleintr(int (*getc)(void))
     procdump();  // now call procdump() wo. cons.lock held
   }
 }
-
 
 int
 consoleread(struct inode *ip, char *dst, int n)
