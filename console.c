@@ -206,20 +206,6 @@ shift_forward(char first)
   }
 }
 
-/*void
-write_until_end()
-{
-  if(input.l > input.e){
-    for(int i = 0; i <= input.l - input.e; i++){
-      char curr = input.buf[(input.e+i) % INPUT_BUF];
-      consputc(curr);
-    }
-    for(int i = 0; i <= input.l - input.e; i++){
-    cgaputc(INDIC_LEFT);
-    }
-  }
-}*/
-
 void
 shift_backward()
 {
@@ -310,7 +296,6 @@ consoleintr(int (*getc)(void))
         if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
           input.w = input.e;
           input.l = input.e;
-          //write_until_end();
           wakeup(&input.r);
         }
       }
