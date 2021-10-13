@@ -31,9 +31,8 @@ char* intToString(int x)
     return str;
 }
 
-int writeNumberInFile(int fd, int x)
+int writeNumberInFile(int fd, int x, char* str)
 {
-    char* str = intToString(x);
     int written = write(fd, str, sizeof(str));
     free(str);
     return written;
@@ -54,16 +53,18 @@ void factor(char* argv)
     {
         if(n % i == 0)
         {
+            printf(1, "%d\n", i);
             char* str = intToString(i);
-            if(writeNumberInFile(fd, i) != sizeof(str))
+            if(writeNumberInFile(fd, i, str) != sizeof(str))
             {
                 printf(2, "write error\n");
                 return;
             }
             if(i != n/i)
             {
+                printf(1, "%d\n", n/i);
                 str = intToString(n/i);
-                if(writeNumberInFile(fd, i) != sizeof(str))
+                if(writeNumberInFile(fd, n/i, str) != sizeof(str))
                 {
                     printf(2, "write error\n");
                     return;

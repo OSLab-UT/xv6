@@ -172,7 +172,7 @@ UPROGS=\
 	_grep\
 	_init\
 	_kill\
-	-factor\
+	_factor\
 	_ln\
 	_ls\
 	_mkdir\
