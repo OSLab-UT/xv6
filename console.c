@@ -207,6 +207,20 @@ shift_forward(char first)
 }
 
 void
+write_until_end()
+{
+  if(input.l > input.e){
+    for(int i = 0; i <= input.l - input.e; i++){
+      char curr = input.buf[(input.e+i) % INPUT_BUF];
+      consputc(curr);
+    }
+    for(int i = 0; i <= input.l - input.e; i++){
+    cgaputc(INDIC_LEFT);
+    }
+  }
+}
+
+void
 shift_backward()
 {
   if(input.l > input.e){
@@ -276,6 +290,7 @@ consoleintr(int (*getc)(void))
         consputc(second);
         input.buf[(input.e) % INPUT_BUF] = second;
         input.e++;
+        write_until_end();
       }
       break;
     
