@@ -276,11 +276,28 @@ consoleintr(int (*getc)(void))
       }
       break;
 
+    case C('T'):  // Reverse the last two characters
+      if(input.e != input.w && input.e - 1 != input.w){
+        char first = input.buf[(input.e-1) % INPUT_BUF];
+        consputc(BACKSPACE);
+        input.e--;
+        char second = input.buf[(input.e-1) % INPUT_BUF];
+        input.e--;
+        consputc(BACKSPACE);
+        consputc(first);
+        input.buf[(input.e) % INPUT_BUF] = first;
+        input.e++;
+        consputc(second);
+        input.buf[(input.e) % INPUT_BUF] = second;
+        input.e++;
+      }
+      break;
+    
     case C('P'):  // Process listing.
       // procdump() locks cons.lock indirectly; invoke later
       doprocdump = 1;
-      break;
-
+      break; 
+        
     case C('U'):  // Kill line.
       while(input.e != input.w &&
             input.buf[(input.e-1) % INPUT_BUF] != '\n'){
@@ -290,6 +307,7 @@ consoleintr(int (*getc)(void))
         shift_backward();
       }
       break;
+        
     case C('H'): case '\x7f':  // Backspace
       if(input.e != input.w){
         input.e--;
@@ -298,6 +316,7 @@ consoleintr(int (*getc)(void))
         shift_backward();
       }
       break;
+        
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
         c = (c == '\r') ? '\n' : c;
