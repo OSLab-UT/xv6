@@ -14,34 +14,37 @@ int getNumOfDigits(int x)
     while(x > 0)
     {
         digits++;
-        x = x % 10;
+        x /= 10;
     }
     return digits;
 }
 char* intToString(int x)
 {
-    int digits = getNumOfDigits(x);
-    char* str = (char*) malloc(digits);
-    
-    for(int i = digits - 1; i >= 0; i--)
+    int wordSize = getNumOfDigits(x);
+    printf(1, "%d digits %d\n", x, wordSize);
+    wordSize += 2;
+    char* str = (char*) malloc(wordSize);
+    str[wordSize - 1] = '\0';
+    str[wordSize - 2] = '\n';
+
+    for(int i = wordSize - 3; i >= 0; i--)
     {
-        str[i] = x % 10;
+        str[i] = (x % 10) + '0';
         x /= 10;
     }
+    printf(1, "%s\n", str); 
     return str;
 }
 
-int writeNumberInFile(int fd, int x, char* str)
-{
-    int written = write(fd, str, sizeof(str));
-    free(str);
-    return written;
-}
+
 
 void factor(char* argv)
 {
     int n = atoi(argv);
     int fd = open(OUTPUT_FILE, O_WRONLY | O_CREATE);
+    //write(fd, "hello", sizeof("hello"));
+    //return;
+    printf(1, "fd %d\n", fd);
     if(fd < 0)
     {
         printf(2, "factor cannot open %s\n", OUTPUT_FILE);
@@ -53,26 +56,28 @@ void factor(char* argv)
     {
         if(n % i == 0)
         {
-            printf(1, "%d\n", i);
+            //printf(1, "%d\n", i);
             char* str = intToString(i);
-            if(writeNumberInFile(fd, i, str) != sizeof(str))
+            if(write(fd, str, sizeof(*str)) != sizeof(*str))
             {
                 printf(2, "write error\n");
                 return;
             }
+            free(str);
             if(i != n/i)
             {
-                printf(1, "%d\n", n/i);
+                //printf(1, "%d\n", n/i);
                 str = intToString(n/i);
-                if(writeNumberInFile(fd, n/i, str) != sizeof(str))
+                if(write(fd, str, sizeof(*str))!= sizeof(*str))
                 {
                     printf(2, "write error\n");
                     return;
                 }
+                free(str);
             }
         }
     }
-    close(fd);
+    //close(fd);
     return;
 }
 
