@@ -206,6 +206,20 @@ shift_forward(char first)
   }
 }
 
+/*void
+write_until_end()
+{
+  if(input.l > input.e){
+    for(int i = 0; i <= input.l - input.e; i++){
+      char curr = input.buf[(input.e+i) % INPUT_BUF];
+      consputc(curr);
+    }
+    for(int i = 0; i <= input.l - input.e; i++){
+    cgaputc(INDIC_LEFT);
+    }
+  }
+}*/
+
 void
 shift_backward()
 {
@@ -220,6 +234,7 @@ shift_backward()
   }
 }
 
+#define ASCII_DIFF 32
 #define C(x)  ((x)-'@')  // Control-x
 
 void
@@ -232,7 +247,7 @@ consoleintr(int (*getc)(void))
   acquire(&cons.lock);
   while((c = getc()) >= 0){
     switch(c){
-    case C('A'):
+    case C('A'): // Move cursor to the begin of line
       if(input.l == 0){
         input.l = input.e;
       }
@@ -240,6 +255,24 @@ consoleintr(int (*getc)(void))
             input.buf[(input.e-1) % INPUT_BUF] != '\n'){
         input.e--;
         cgaputc(INDIC_LEFT);
+      }
+      break;
+
+    case C('O'):  // Upper case until space or end of line
+      if(input.l > input.e){
+        int i;
+        for(i = 0; i <= input.l - input.e &&
+            input.buf[(input.e+i) % INPUT_BUF] != '\n' &&
+            input.buf[(input.e+i) % INPUT_BUF] != ' '; i++){
+          char curr = input.buf[(input.e+i) % INPUT_BUF];
+          if('a' <= curr && curr <= 'z')
+            curr -= ASCII_DIFF;
+          input.buf[(input.e+i) % INPUT_BUF] = curr;
+          consputc(curr);
+        }
+        for(int j = 0; j < i; j++){
+          cgaputc(INDIC_LEFT);
+        }
       }
       break;
 
@@ -272,9 +305,12 @@ consoleintr(int (*getc)(void))
         input.buf[input.e++ % INPUT_BUF] = c;
         consputc(c);
         input.l++;
-        shift_forward(temp);
+        if(c != '\n' && c != C('D'))
+          shift_forward(temp);
         if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
           input.w = input.e;
+          input.l = input.e;
+          //write_until_end();
           wakeup(&input.r);
         }
       }
