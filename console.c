@@ -187,7 +187,38 @@ struct {
   uint r;  // Read index
   uint w;  // Write index
   uint e;  // Edit index
+  uint l;  // End of line
 } input;
+
+void
+shift_forward(char first)
+{
+  if(input.l > input.e){
+    for(int i = 0; i <= input.l - input.e; i++){
+      char temp_2 = input.buf[(input.e+i) % INPUT_BUF];
+      input.buf[(input.e+i) % INPUT_BUF] = first;
+      consputc(first);
+      first = temp_2;
+    }
+    for(int i = 0; i <= input.l - input.e; i++){
+    cgaputc(INDIC_LEFT);
+    }
+  }
+}
+
+void
+shift_backward()
+{
+  if(input.l > input.e){
+    for(int i = 0; i <= input.l - input.e; i++){
+      input.buf[(input.e+i) % INPUT_BUF] = input.buf[(input.e+i+1) % INPUT_BUF];
+      consputc(input.buf[(input.e+i+1) % INPUT_BUF]);
+    }
+    for(int i = 0; i <= input.l - input.e; i++){
+    cgaputc(INDIC_LEFT);
+    }
+  }
+}
 
 #define C(x)  ((x)-'@')  // Control-x
 
@@ -202,13 +233,12 @@ consoleintr(int (*getc)(void))
   while((c = getc()) >= 0){
     switch(c){
     case C('A'):
-      char temp_buf[80];
-      int t_b_index = 0;
+      if(input.l == 0){
+        input.l = input.e;
+      }
       while(input.e != input.w &&
             input.buf[(input.e-1) % INPUT_BUF] != '\n'){
         input.e--;
-        temp_buf[t_b_index] = input.buf[input.e % INPUT_BUF];
-        t_b_index++;
         cgaputc(INDIC_LEFT);
       }
       break;
@@ -223,19 +253,26 @@ consoleintr(int (*getc)(void))
             input.buf[(input.e-1) % INPUT_BUF] != '\n'){
         input.e--;
         consputc(BACKSPACE);
+        input.l--;
+        shift_backward();
       }
       break;
     case C('H'): case '\x7f':  // Backspace
       if(input.e != input.w){
         input.e--;
         consputc(BACKSPACE);
+        input.l--;
+        shift_backward();
       }
       break;
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
         c = (c == '\r') ? '\n' : c;
+        char temp = input.buf[input.e % INPUT_BUF];
         input.buf[input.e++ % INPUT_BUF] = c;
         consputc(c);
+        input.l++;
+        shift_forward(temp);
         if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
           input.w = input.e;
           wakeup(&input.r);
