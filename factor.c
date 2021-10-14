@@ -21,18 +21,16 @@ int getNumOfDigits(int x)
 char* intToString(int x)
 {
     int wordSize = getNumOfDigits(x);
-    printf(1, "%d digits %d\n", x, wordSize);
     wordSize += 2;
     char* str = (char*) malloc(wordSize);
     str[wordSize - 1] = '\0';
-    str[wordSize - 2] = '\n';
+    str[wordSize - 2] = ' ';
 
     for(int i = wordSize - 3; i >= 0; i--)
     {
         str[i] = (x % 10) + '0';
         x /= 10;
     }
-    printf(1, "%s\n", str); 
     return str;
 }
 
@@ -42,9 +40,6 @@ void factor(char* argv)
 {
     int n = atoi(argv);
     int fd = open(OUTPUT_FILE, O_WRONLY | O_CREATE);
-    //write(fd, "hello", sizeof("hello"));
-    //return;
-    printf(1, "fd %d\n", fd);
     if(fd < 0)
     {
         printf(2, "factor cannot open %s\n", OUTPUT_FILE);
@@ -56,9 +51,8 @@ void factor(char* argv)
     {
         if(n % i == 0)
         {
-            //printf(1, "%d\n", i);
             char* str = intToString(i);
-            if(write(fd, str, sizeof(*str)) != sizeof(*str))
+            if(write(fd, str, strlen(str)) != strlen(str))
             {
                 printf(2, "write error\n");
                 return;
@@ -66,9 +60,8 @@ void factor(char* argv)
             free(str);
             if(i != n/i)
             {
-                //printf(1, "%d\n", n/i);
                 str = intToString(n/i);
-                if(write(fd, str, sizeof(*str))!= sizeof(*str))
+                if(write(fd, str, strlen(str))!= strlen(str))
                 {
                     printf(2, "write error\n");
                     return;
@@ -77,7 +70,12 @@ void factor(char* argv)
             }
         }
     }
-    //close(fd);
+    if(write(fd, "\n", 1) != 1)
+    {
+        printf(2, "write error\n");
+        return;
+    }
+    close(fd);
     return;
 }
 
