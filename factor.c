@@ -34,12 +34,21 @@ char* intToString(int x)
     return str;
 }
 
-
+void delete_last_data(int file){
+    char* str = (char*) malloc(sizeof(char));
+    char* backspace = "\b";
+    int flag = read(file, str, sizeof(char));
+    while(flag != 0 && flag != -1){
+        write(file, backspace, strlen(backspace));
+        flag = read(file, str, strlen(str));
+    }
+}
 
 void factor(char* argv)
 {
     int n = atoi(argv);
-    int fd = open(OUTPUT_FILE, O_WRONLY | O_CREATE);
+    int fd = open(OUTPUT_FILE, O_RDWR | O_CREATE);
+    delete_last_data(fd);
     if(fd < 0)
     {
         printf(2, "factor cannot open %s\n", OUTPUT_FILE);
@@ -47,7 +56,7 @@ void factor(char* argv)
     }
     
     
-    for(int i = 1; i * i <= n ; i++)
+    for(int i = 1; i <= n ; i++)
     {
         if(n % i == 0)
         {
@@ -58,16 +67,6 @@ void factor(char* argv)
                 return;
             }
             free(str);
-            if(i != n/i)
-            {
-                str = intToString(n/i);
-                if(write(fd, str, strlen(str))!= strlen(str))
-                {
-                    printf(2, "write error\n");
-                    return;
-                }
-                free(str);
-            }
         }
     }
     if(write(fd, "\n", 1) != 1)
