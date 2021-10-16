@@ -55,15 +55,14 @@ void delete_last_data(){
 void factor(char* argv)
 {
     int n = atoi(argv);
-    delete_last_data();
-    int fd = open(OUTPUT_FILE, O_WRONLY | O_CREATE);
+    //delete_last_data();
+    int fd = open(OUTPUT_FILE, O_CREATE | O_WRONLY | O_TRUNC);
     if(fd < 0)
     {
         printf(2, "factor cannot open %s\n", OUTPUT_FILE);
         return;
     }
-    
-    
+
     for(int i = 1; i <= n ; i++)
     {
         if(n % i == 0)
