@@ -34,21 +34,29 @@ char* intToString(int x)
     return str;
 }
 
-void delete_last_data(int file){
+void delete_last_data(){
+    int file = open(OUTPUT_FILE, O_RDONLY | O_CREATE);
     char* str = (char*) malloc(sizeof(char));
-    char* backspace = "\b";
+    char* space = " ";
     int flag = read(file, str, sizeof(char));
+    int file_size = 0;
     while(flag != 0 && flag != -1){
-        write(file, backspace, strlen(backspace));
-        flag = read(file, str, strlen(str));
+        file_size++;
+        flag = read(file, str, sizeof(char));
     }
+    close(file);
+    file = open(OUTPUT_FILE, O_WRONLY);
+    for(int i = 0; i < file_size; i++){
+        write(file, space, sizeof(char));
+    }
+    close(file);
 }
 
 void factor(char* argv)
 {
     int n = atoi(argv);
-    int fd = open(OUTPUT_FILE, O_RDWR | O_CREATE);
-    delete_last_data(fd);
+    delete_last_data();
+    int fd = open(OUTPUT_FILE, O_WRONLY | O_CREATE);
     if(fd < 0)
     {
         printf(2, "factor cannot open %s\n", OUTPUT_FILE);
