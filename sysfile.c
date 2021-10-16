@@ -321,6 +321,9 @@ sys_open(void)
     end_op();
     return -1;
   }
+  if(omode & O_TRUNC){
+    itrunc(ip);
+  }
   iunlock(ip);
   end_op();
 

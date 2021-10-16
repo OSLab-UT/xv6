@@ -126,6 +126,7 @@ panic(char *s)
 //PAGEBREAK: 50
 #define BACKSPACE 0x100
 #define CRTPORT 0x3d4
+const int INDIC_LEFT = -1;
 static ushort *crt = (ushort*)P2V(0xb8000);  // CGA memory
 
 static void
@@ -141,7 +142,7 @@ cgaputc(int c)
 
   if(c == '\n')
     pos += 80 - pos%80;
-  else if(c == BACKSPACE){
+  else if(c == BACKSPACE || c == INDIC_LEFT){
     if(pos > 0) --pos;
   } else
     crt[pos++] = (c&0xff) | 0x0700;  // black on white
@@ -159,7 +160,9 @@ cgaputc(int c)
   outb(CRTPORT+1, pos>>8);
   outb(CRTPORT, 15);
   outb(CRTPORT+1, pos);
-  crt[pos] = ' ' | 0x0700;
+
+  if(c != INDIC_LEFT)
+    crt[pos] = ' ' | 0x0700;
 }
 
 void
@@ -184,25 +187,95 @@ struct {
   uint r;  // Read index
   uint w;  // Write index
   uint e;  // Edit index
+  uint l;  // End of line
 } input;
 
+void
+shift_forward(char first)
+{
+  if(input.l > input.e){
+    for(int i = 0; i <= input.l - input.e; i++){
+      char temp_2 = input.buf[(input.e+i) % INPUT_BUF];
+      input.buf[(input.e+i) % INPUT_BUF] = first;
+      consputc(first);
+      first = temp_2;
+    }
+    for(int i = 0; i <= input.l - input.e; i++){
+    cgaputc(INDIC_LEFT);
+    }
+  }
+}
+
+void
+write_until_end()
+{
+  if(input.l > input.e){
+    for(int i = 0; i <= input.l - input.e; i++){
+      char curr = input.buf[(input.e+i) % INPUT_BUF];
+      consputc(curr);
+    }
+    for(int i = 0; i <= input.l - input.e; i++){
+    cgaputc(INDIC_LEFT);
+    }
+  }
+}
+
+void
+shift_backward()
+{
+  if(input.l > input.e){
+    for(int i = 0; i <= input.l - input.e; i++){
+      input.buf[(input.e+i) % INPUT_BUF] = input.buf[(input.e+i+1) % INPUT_BUF];
+      consputc(input.buf[(input.e+i+1) % INPUT_BUF]);
+    }
+    for(int i = 0; i <= input.l - input.e; i++){
+    cgaputc(INDIC_LEFT);
+    }
+  }
+}
+
+#define ASCII_DIFF 32
 #define C(x)  ((x)-'@')  // Control-x
 
 void
 consoleintr(int (*getc)(void))
 {
   int c, doprocdump = 0;
+  //char stringToCapitalize[INPUT_BUF];
+  //int strSize = 0;
 
   acquire(&cons.lock);
   while((c = getc()) >= 0){
     switch(c){
-    case C('P'):  // Process listing.
-      // procdump() locks cons.lock indirectly; invoke later
-      doprocdump = 1;
+    case C('A'): // Move cursor to the begin of line
+      if(input.l == 0){
+        input.l = input.e;
+      }
+      while(input.e != input.w &&
+            input.buf[(input.e-1) % INPUT_BUF] != '\n'){
+        input.e--;
+        cgaputc(INDIC_LEFT);
+      }
       break;
-    case C('O'):  // 
 
+    case C('O'):  // Upper case until space or end of line
+      if(input.l > input.e){
+        int i;
+        for(i = 0; i <= input.l - input.e &&
+            input.buf[(input.e+i) % INPUT_BUF] != '\n' &&
+            input.buf[(input.e+i) % INPUT_BUF] != ' '; i++){
+          char curr = input.buf[(input.e+i) % INPUT_BUF];
+          if('a' <= curr && curr <= 'z')
+            curr -= ASCII_DIFF;
+          input.buf[(input.e+i) % INPUT_BUF] = curr;
+          consputc(curr);
+        }
+        for(int j = 0; j < i; j++){
+          cgaputc(INDIC_LEFT);
+        }
+      }
       break;
+
     case C('T'):  // Reverse the last two characters
       if(input.e != input.w && input.e - 1 != input.w){
         char first = input.buf[(input.e-1) % INPUT_BUF];
@@ -217,31 +290,46 @@ consoleintr(int (*getc)(void))
         consputc(second);
         input.buf[(input.e) % INPUT_BUF] = second;
         input.e++;
+        write_until_end();
       }
       break;
-    case C('A'):  // 
-      
-      break;
+    
+    case C('P'):  // Process listing.
+      // procdump() locks cons.lock indirectly; invoke later
+      doprocdump = 1;
+      break; 
+        
     case C('U'):  // Kill line.
       while(input.e != input.w &&
             input.buf[(input.e-1) % INPUT_BUF] != '\n'){
         input.e--;
         consputc(BACKSPACE);
+        input.l--;
+        shift_backward();
       }
       break;
+        
     case C('H'): case '\x7f':  // Backspace
       if(input.e != input.w){
         input.e--;
         consputc(BACKSPACE);
+        input.l--;
+        shift_backward();
       }
       break;
+        
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
         c = (c == '\r') ? '\n' : c;
+        char temp = input.buf[input.e % INPUT_BUF];
         input.buf[input.e++ % INPUT_BUF] = c;
         consputc(c);
+        input.l++;
+        if(c != '\n' && c != C('D'))
+          shift_forward(temp);
         if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
           input.w = input.e;
+          input.l = input.e;
           wakeup(&input.r);
         }
       }
