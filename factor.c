@@ -76,7 +76,6 @@ int write_end_of_file(int file){
 void factor(char* argv)
 {
     int n = atoi(argv);
-    //delete_last_data();
     int fd = open(OUTPUT_FILE, O_CREATE | O_WRONLY | O_TRUNC);
     if(fd < 0)
     {
@@ -97,8 +96,11 @@ void factor(char* argv)
         }
     }
 
-    write_end_of_file(fd);
-
+    if(write(fd, "\n", 1) != 1)
+    {
+        printf(2, "write error\n");
+        return;
+    }
     close(fd);
     return;
 }
