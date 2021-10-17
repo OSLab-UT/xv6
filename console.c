@@ -247,7 +247,7 @@ consoleintr(int (*getc)(void))
   acquire(&cons.lock);
   while((c = getc()) >= 0){
     switch(c){
-    case C('A'): // Move cursor to the begin of line
+    case C('A'): // Move cursor to the beginning of the line
       if(input.l == 0){
         input.l = input.e;
       }
@@ -258,7 +258,7 @@ consoleintr(int (*getc)(void))
       }
       break;
 
-    case C('O'):  // Upper case until space or end of line
+    case C('O'):  // Upper case until space or end of the line
       if(input.l > input.e){
         int i;
         for(i = 0; i <= input.l - input.e &&
@@ -276,7 +276,7 @@ consoleintr(int (*getc)(void))
       }
       break;
 
-    case C('T'):  // Reverse the last two characters
+    case C('T'):  // Swap the last two characters
       if(input.e != input.w && input.e - 1 != input.w){
         char first = input.buf[(input.e-1) % INPUT_BUF];
         consputc(BACKSPACE);
