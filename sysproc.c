@@ -89,3 +89,21 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int
+sys_digitsum(void)
+{
+  int num;
+  asm ("movl %%eax, %0;"
+      :"=r"(num)
+      :"%eax"
+      );
+
+  int sum = 0;
+  while(num)
+  {
+    sum += num % 10;
+    num /= 10;
+  }
+  return sum;
+}

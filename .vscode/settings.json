@@ -4,5 +4,9 @@
         "types.h": "c",
         "fs.h": "c",
         "fcntl.h": "c"
-    }
+    },
+    "files.exclude": {
+        "**/.git": false
+    },
+    "search.useIgnoreFiles": false
 }
