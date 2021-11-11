@@ -445,3 +445,19 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+int 
+sys_getfilesectors(void)
+{
+  struct file* f;
+  int* address;
+  int* size;
+  if(argfd(0, 0, &f) < 0 || argptr(1, (void*)&address, sizeof(*address)) < 0 || argptr(2, (void*)&size, sizeof(*size)))
+    return -1;
+  for(int i=0 ; i < f->ip->size; i++)
+  {
+    address[i] = f->ip->addrs[i];
+  }
+  (*size) = f->ip->size;
+  return 0;
+}

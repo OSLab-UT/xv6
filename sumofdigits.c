@@ -8,14 +8,16 @@
 void sumOfDigits(char* arg)
 {
     int num = atoi(arg);
-    asm ("movl %1, %%eax;"
-        :"r"(num) /* input */
-        :"%eax" /* clobbered register */
-        );
+    int b;
+    asm volatile("movl %1, %0;"
+        :"=a"(b)        /* output */
+        :"m"(num)         /* input */
+        :        /* clobbered register */
+        );      
+    printf(1, "b %d\n", b);
 
     int sum = digitsum();
-    printf("The sum of the digits of %d is equal to %d\n",
-    num, sum);
+    printf(1, "The sum of the digits of %d is equal to %d\n", num, sum);
     return;
 }
 
@@ -23,7 +25,7 @@ int main(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        printf(2, "Usage: factor number\n");
+        printf(2, "Usage: sum of digits number\n");
         exit();
     }
     else

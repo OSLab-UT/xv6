@@ -93,17 +93,8 @@ sys_uptime(void)
 int
 sys_digitsum(void)
 {
-  int num;
-  asm ("movl %%eax, %0;"
-      :"=r"(num)
-      :"%eax"
-      );
+  struct proc* currproc = myproc();
 
-  int sum = 0;
-  while(num)
-  {
-    sum += num % 10;
-    num /= 10;
-  }
-  return sum;
+  int num = currproc->tf->eax;
+  return num;
 }
