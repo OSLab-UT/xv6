@@ -98,3 +98,15 @@ sys_digitsum(void)
   int num = currproc->tf->eax;
   return num;
 }
+
+int
+sys_setprocessparent(void)
+{
+  return 0;
+}
+
+int
+sys_getparentpid(void)
+{
+  return 0;
+}

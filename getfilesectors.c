@@ -24,8 +24,7 @@ void getFileSectors(char* argv)
     fileopentest();
     int fd = atoi(argv);
     int address[NDIRECT + 1];
-    int size;
-    if(getfilesectors(fd, address, &size) < 0)
+    if(getfilesectors(fd, address) < 0)
     {
         printf(2, "Usage: get file sectors file problem\n");
         return;

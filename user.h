@@ -24,7 +24,9 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int digitsum(void);
-int getfilesectors(int, int*, int*);
+int getfilesectors(int, int*);
+int setprocessparent(void);
+int getparentpid(void);
 
 // ulib.c
 int stat(const char*, struct stat*);
