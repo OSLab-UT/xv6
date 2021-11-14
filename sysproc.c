@@ -102,11 +102,20 @@ sys_digitsum(void)
 int
 sys_setprocessparent(void)
 {
+  int pid;
+  if(argint(0, &pid) < 0)
+    return -1;
+  
+  
+
   return 0;
 }
 
 int
 sys_getparentpid(void)
 {
+  struct proc* parent = myproc()->parent;
+  if(parent == 0)
+    return parent->pid;
   return 0;
 }
