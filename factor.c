@@ -35,19 +35,6 @@ char* intToString(int x)
     return str;
 }
 
-int write_end_of_file(int file){
-    char* str = (char*) malloc(sizeof(char));
-    if(read(file, str, sizeof(char)) == 0)
-    {
-        if(write(file, "\n", 1) != 1)
-        {
-            printf(2, "write error\n");
-            return -1;
-        }
-    }
-    return 0;
-}
-
 void factor(char* argv)
 {
     int n = atoi(argv);
