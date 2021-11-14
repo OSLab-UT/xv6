@@ -25,7 +25,7 @@ int sleep(int);
 int uptime(void);
 int digitsum(void);
 int getfilesectors(int, int*);
-int setprocessparent(void);
+int setprocessparent(int);
 int getparentpid(void);
 
 // ulib.c

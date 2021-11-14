@@ -184,6 +184,8 @@ UPROGS=\
 	_zombie\
 	_sumofdigits\
 	_getfilesectors\
+	_testdebuggingchild\
+	_testdebugger\
 
 fs.img: mkfs README inputtestfile1.txt inputtestfile2.txt inputtestfile3.txt $(UPROGS)
 	./mkfs fs.img README inputtestfile1.txt inputtestfile2.txt inputtestfile3.txt $(UPROGS)
@@ -254,6 +256,7 @@ EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c factor.c usertests.c wc.c zombie.c\
 	printf.c umalloc.c sumofdigits.c getfilesectors.c\
+	testdebuggingchild.c testdebugger.c\
 	inputtestfile1.txt inputtestfile2.txt inputtestfile3.txt\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\

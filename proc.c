@@ -111,6 +111,8 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
+  p->isBeingDebugged = 0;
+  p->debugger = 0;
 
   return p;
 }
@@ -259,6 +261,11 @@ exit(void)
       if(p->state == ZOMBIE)
         wakeup1(initproc);
     }
+    if(p->isBeingDebugged && p->debugger == curproc)
+    {
+      p->debugger = 0;
+      p->isBeingDebugged = 0;
+    }
   }
 
   // Jump into the scheduler, never to return.
@@ -283,6 +290,7 @@ wait(void)
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->parent != curproc)
         continue;
+
       havekids = 1;
       if(p->state == ZOMBIE){
         // Found one.
@@ -294,6 +302,8 @@ wait(void)
         p->parent = 0;
         p->name[0] = 0;
         p->killed = 0;
+        p->debugger = 0;
+        p->isBeingDebugged = 0;
         p->state = UNUSED;
         release(&ptable.lock);
         return pid;
@@ -532,3 +542,22 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+struct proc*
+findprocbypid(int pid)
+{
+  struct proc* proc = 0;
+  acquire(&ptable.lock);
+
+  struct proc *p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->pid == pid)
+    {
+      proc = p;
+      break;
+    }
+  }
+  release(&ptable.lock);
+  return proc;
+} 
