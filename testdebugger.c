@@ -4,12 +4,25 @@
 #include "fs.h"
 #include "fcntl.h"
 
-void testdebugger(char* argv)
+void testdebugger()
 {
-    int pid = atoi(argv);
+    int fd = open("testdebuggingoutput.txt", O_RDONLY);
+    if(fd < -1)
+    {
+        printf(2, "Test debugging file open problem\n");
+        return;
+    }
+    char strPid[256];
+    if(read(fd, strPid, 4) < 0)
+    {
+        printf(2, "Test debugging file read problem\n");
+        return;
+    }
+    int pid = atoi(strPid);
     if(setprocessparent(pid) < 0)
     {
         printf(2, "Set process parent error\n");
+        return;
     }
     printf(1, "Test debugging done\n");
     return;
@@ -17,14 +30,6 @@ void testdebugger(char* argv)
 
 int main(int argc, char* argv[])
 {
-    if(argc < 2)
-    {
-        printf(2, "Usage: debugger input\n");
-        exit();
-    }
-    else
-    {
-        testdebugger(argv[1]);
-        exit();
-    }
+    testdebugger();
+    exit();
 }
