@@ -455,14 +455,14 @@ sys_getfilesectors(void)
 
   if(argfd(0, 0, &f) < 0 || argptr(1, (void*)&address, sizeof(*address)) < 0)
     return -1;
-  for(int i=0 ; i < NDIRECT + 1; i++)
+  
+  for(int i=0 ; i < NDIRECT; i++)
   {
     if(f->ip->addrs[i] == 0)
     {
       address[i] = 0;
       continue;
     }
-    //address[i] = f->ip->addrs[i];
     address[i] = bmap(f->ip, f->ip->addrs[i]);
   }
 
