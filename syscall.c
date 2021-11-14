@@ -105,6 +105,8 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_digitsum(void);
 extern int sys_getfilesectors(void);
+extern int sys_setprocessparent(void);
+extern int sys_getparentpid(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -129,7 +131,9 @@ static int (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 [SYS_digitsum] sys_digitsum,
-[SYS_getfilesectors] sys_getfilesectors
+[SYS_getfilesectors] sys_getfilesectors,
+[SYS_setprocessparent] sys_setprocessparent,
+[SYS_getparentpid] sys_getparentpid
 };
 
 void

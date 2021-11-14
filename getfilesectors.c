@@ -4,9 +4,24 @@
 #include "fs.h"
 #include "fcntl.h"
 
+void fileopentest()
+{
+    open("inputtestfile1.txt", O_CREATE | O_RDONLY);
+    open("inputtestfile2.txt", O_RDONLY | O_CREATE);
+    open("inputtestfile3.txt", O_CREATE | O_RDONLY);
+    return;
+}
+
+void fileclosetest()
+{
+    for(int fd = 3; fd <= 5; fd++)
+        close(fd);
+    return;
+}
 
 void getFileSectors(char* argv)
 {
+    fileopentest();
     int fd = atoi(argv);
     int address[NDIRECT + 1];
     int size;
@@ -15,10 +30,11 @@ void getFileSectors(char* argv)
         printf(2, "Usage: get file sectors file problem\n");
         return;
     }
-    printf(1, "The sectors for %d are:", fd);
-    for(int i = 0; i < size; i++)
+    printf(1, "The sectors for %d are: ", fd);
+    for(int i = 0; i < NDIRECT + 1; i++)
         printf(1, "%d ", address[i]);
     printf(1, "\n");
+    fileclosetest();
     return;
 }
 

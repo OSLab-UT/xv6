@@ -454,10 +454,9 @@ sys_getfilesectors(void)
   int* size;
   if(argfd(0, 0, &f) < 0 || argptr(1, (void*)&address, sizeof(*address)) < 0 || argptr(2, (void*)&size, sizeof(*size)))
     return -1;
-  for(int i=0 ; i < f->ip->size; i++)
+  for(int i=0 ; i < NDIRECT + 1; i++)
   {
     address[i] = f->ip->addrs[i];
   }
-  (*size) = f->ip->size;
   return 0;
 }
