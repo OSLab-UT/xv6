@@ -89,3 +89,47 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int
+sys_digitsum(void)
+{
+  struct proc* currproc = myproc();
+
+  int num = currproc->tf->eax;
+
+  int sum = 0;
+  while(num)
+  {
+    sum += num % 10;
+    num /= 10;
+  }
+  return sum;
+}
+
+int
+sys_setprocessparent(void)
+{
+  struct proc* curproc = myproc();
+  int pid;
+  if(argint(0, &pid) < 0)
+    return -1;
+  
+  struct proc* childproc = findprocbypid(pid);
+  if(childproc == 0)
+    return -1;
+  if(childproc->isBeingDebugged)
+    return -1; 
+
+  childproc->debugger = curproc;
+  childproc->isBeingDebugged = 1;
+  return 0;
+}
+
+int
+sys_getparentpid(void)
+{
+  struct proc* parent = myproc()->parent;
+  if(parent == 0)
+    return parent->pid;
+  return 0;
+}

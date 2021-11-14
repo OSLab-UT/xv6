@@ -3,6 +3,11 @@
         "stat.h": "c",
         "types.h": "c",
         "fs.h": "c",
-        "fcntl.h": "c"
-    }
+        "fcntl.h": "c",
+        "file.h": "c"
+    },
+    "files.exclude": {
+        "**/.git": false
+    },
+    "search.useIgnoreFiles": false
 }

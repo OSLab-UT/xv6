@@ -23,6 +23,10 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int digitsum(void);
+int getfilesectors(int, int*);
+int setprocessparent(int);
+int getparentpid(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

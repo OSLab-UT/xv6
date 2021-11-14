@@ -445,3 +445,27 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+int 
+sys_getfilesectors(void)
+{
+  struct file* f;
+  int* address;
+  begin_op();
+
+  if(argfd(0, 0, &f) < 0 || argptr(1, (void*)&address, sizeof(*address)) < 0)
+    return -1;
+  
+  for(int i=0 ; i < NDIRECT; i++)
+  {
+    if(f->ip->addrs[i] == 0)
+    {
+      address[i] = 0;
+      continue;
+    }
+    address[i] = bmap(f->ip, f->ip->addrs[i]);
+  }
+
+  end_op();
+  return 0;
+}

@@ -5,7 +5,6 @@
 #include "fcntl.h"
 
 const char OUTPUT_FILE[] = "factor_result.txt";
-
 int getNumOfDigits(int x)
 {
     if(x < 10)
@@ -18,6 +17,8 @@ int getNumOfDigits(int x)
     }
     return digits;
 }
+
+
 char* intToString(int x)
 {
     int wordSize = getNumOfDigits(x);
