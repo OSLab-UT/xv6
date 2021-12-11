@@ -14,7 +14,11 @@ struct {
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
-
+struct Queue {
+  int front, rear, size;
+  struct spinlock lock;
+  struct proc array[NPROC];
+};
 static struct proc *initproc;
 
 int nextpid = 1;
