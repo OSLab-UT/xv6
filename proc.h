@@ -51,7 +51,7 @@ struct proc {
   char name[16];               // Process name (debugging)
   struct proc *debugger;       // Debugger process
   int isBeingDebugged;         // If non-zero, the process is being debugged
-  int creationTime;            // The time of process creation
+  //int creationTime;            // The time of process creation
   //int arrivalTime;             // For MHRRN queue
   int ExeCycleNum;             // Execution cycle number in MHRRN queue
   float HRRNpriority;          // The factor in MHRRN algorithm 
@@ -68,10 +68,10 @@ struct proc {
 //   expandable heap
 
 // LIFO Queue
-struct Queue {
+/*struct Queue {
   int front, rear, size;
-  struct spinlock lock;
+  //struct spinlock lock;
   struct proc* array[NPROC];
-};
+};*/
 
-extern struct Queue schedulingQueues[NQUEUE];
+//extern struct Queue schedulingQueues[NQUEUE];

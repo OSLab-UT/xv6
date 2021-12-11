@@ -17,15 +17,18 @@ struct {
 struct Queue {
   int front, rear, size;
   struct spinlock lock;
-  struct proc array[NPROC];
+  struct proc* array[NPROC];
 };
 static struct proc *initproc;
+extern struct Queue schedulingQueues[NQUEUE];
 
 int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+
+int isEmpty(struct Queue* queue);
 
 void
 pinit(void)
@@ -395,15 +398,32 @@ void LCFS_scheduler(void){
 
     // Loop over process table looking for process to run.
     acquire(&LCFS_queue.lock);
-
-
+    
+    if(isEmpty(&LCFS_queue)){
+      release(&LCFS_queue.lock);
+      break;
+    }
     /* In this place we should replce the below for loop
       with a loop on queues and in this loop we should write
       a loop on each queue */
-    int max_creation_time=-1;
-    struct proc* max_creation_time_proc;
+    p = LIFO_dequeue(&LCFS_queue);
+    while(p->state == RUNNABLE){
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
 
-    for(p = LCFS_queue.array; p < &LCFS_queue.array[NPROC]; p++){
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    }
+    /*int max_creation_time=LCFS_queue.array[LCFS_queue.front]->ctime;
+    struct proc* max_creation_time_proc=LCFS_queue.array[LCFS_queue.front];
+
+    for(int i = LCFS_queue.front; i != LCFS_queue.rear; i = (i + 1) % NPROC){
+      p = LCFS_queue.array[i];
       if(p->state != RUNNABLE)
         continue;
       if(p->ctime > max_creation_time){
@@ -419,18 +439,18 @@ void LCFS_scheduler(void){
       max_creation_time_proc->state = RUNNING;
 
       swtch(&(c->scheduler), max_creation_time_proc->context);
-      switchkvm();
+      switchkvm();*/
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
-      c->proc = 0;
-    release(&ptable.lock);
+      //c->proc = 0;
+    release(&LCFS_queue.lock);
 
   }
 
 }
 
-// create queue with given capacity.
+// create queue with default capacity.
 struct Queue create_queue(){
   struct Queue queue;
   queue.front=0;
@@ -470,7 +490,7 @@ struct proc* LIFO_dequeue(struct Queue* queue)
 }
 
 // dequeue for MHRRN
-struct proc MHRRN_dequeue(struct Queue* queue)
+struct proc* MHRRN_dequeue(struct Queue* queue)
 {
   if (isEmpty(queue))
     panic("Queue is empty.");
@@ -479,23 +499,23 @@ struct proc MHRRN_dequeue(struct Queue* queue)
   int max_place = -1;
   for (int i = 0; i < queue->size; i++){
     int curr = (queue->front + i) % NPROC;
-    int waiting_time = /*current_time - */queue->array[curr].ctime;
+    int waiting_time = /*current_time - */queue->array[curr]->ctime;
     // current time probably can give from int sys_uptime(void) in line 82 sysproc.c
-    int ECN = queue->array[curr].ExeCycleNum;
+    int ECN = queue->array[curr]->ExeCycleNum;
     float HRRN = (waiting_time - ECN) / ECN;
-    float MHRRN = (HRRN + queue->array[curr].HRRNpriority) / 2;
+    float MHRRN = (HRRN + queue->array[curr]->HRRNpriority) / 2;
     if (MHRRN > max){
       max = MHRRN;
       max_place = curr;
     }
   }
-  struct proc item = queue->array[queue->front];
+  struct proc* item = queue->array[queue->front];
   if (max_place != queue->front){
-    struct proc temp = queue->array[max_place];
+    struct proc* temp = queue->array[max_place];
     queue->array[max_place] = item;
     item = temp;
   }
-  queue->front = (queue->front + 1) % queue->capacity;
+  queue->front = (queue->front + 1) % NPROC;
   queue->size = queue->size - 1;
   return item;
 }
