@@ -62,3 +62,10 @@ struct proc {
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
+
+// LIFO Queue
+struct Queue {
+  int front, rear, size;
+  unsigned capacity;
+  struct proc* *array;
+};

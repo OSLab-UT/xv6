@@ -342,6 +342,14 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+
+
+
+    /* In this place we should replce the below for loop
+      with a loop on queues and in this loop we should write
+      a loop on each queue */
+
+
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
@@ -363,6 +371,80 @@ scheduler(void)
     release(&ptable.lock);
 
   }
+}
+
+// create queue with given capacity.
+struct Queue* createQueue(unsigned capacity)
+{
+  // replace malloc with memory allocation function in xv6
+  struct Queue* queue = (struct Queue*)malloc(sizeof(struct Queue));
+  queue->capacity = capacity;
+  queue->front = queue->size = 0;
+  queue->rear = capacity - 1;
+  // replace malloc with memory allocation function in xv6
+  queue->array = (struct proc**)malloc(queue->capacity * sizeof(struct proc*));
+  return queue;
+}
+
+int isEmpty(struct Queue* queue)
+{
+  return (queue->size == 0);
+}
+
+int isFull(struct Queue* queue)
+{
+  return (queue->size == queue->capacity);
+}
+
+void enqueue(struct Queue* queue, struct proc* item)
+{
+  if (isFull(queue))
+    panic("Queue is full.");
+  queue->rear = (queue->rear + 1) % queue->capacity;
+  queue->array[queue->rear] = item;
+  queue->size = queue->size + 1;
+}
+
+// dequeue for RR and LCFS
+struct proc* LIFO_dequeue(struct Queue* queue)
+{
+  if (isEmpty(queue))
+    panic("Queue is empty.");
+  struct proc* item = queue->array[queue->front];
+  queue->front = (queue->front + 1) % queue->capacity;
+  queue->size = queue->size - 1;
+  return item;
+}
+
+// dequeue for MHRRN
+struct proc* MHRRN_dequeue(struct Queue* queue)
+{
+  if (isEmpty(queue))
+    panic("Queue is empty.");
+
+  float max = -1000.0;
+  int max_place = -1;
+  for (int i = 0; i < queue->size; i++){
+    int curr = (queue->front + i) % queue->capacity;
+    int waiting_time = /*current_time - */queue->array[curr]->creationTime;
+    // current time probably can give from int sys_uptime(void) in line 82 sysproc.c
+    int ECN = queue->array[curr]->ExeCycleNum;
+    float HRRN = (waiting_time - ECN) / ECN;
+    float MHRRN = (HRRN + queue->array[curr]->HRRNpriority) / 2;
+    if (MHRRN > max){
+      max = MHRRN;
+      max_place = curr;
+    }
+  }
+  struct proc* item = queue->array[queue->front];
+  if (max_place != queue->front){
+    struct proc* temp = queue->array[max_place];
+    queue->array[max_place] = item;
+    item = temp;
+  }
+  queue->front = (queue->front + 1) % queue->capacity;
+  queue->size = queue->size - 1;
+  return item;
 }
 
 // Enter scheduler.  Must hold only ptable.lock
