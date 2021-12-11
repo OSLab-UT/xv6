@@ -10,6 +10,7 @@ struct sleeplock;
 struct stat;
 struct superblock;
 struct Queue;
+struct Ptable;
 
 // bio.c
 void            binit(void);
@@ -125,8 +126,10 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 struct proc*    findprocbypid(int); 
-struct proc*    LIFO_dequeue(struct Queue* queue);
-void            enqueue(struct Queue* queue, struct proc* item);
+struct proc*    LIFO_dequeue(int queueIndex);
+void            enqueue(int queueIndex, struct proc* item);
+int             getSchedulingQueueFront(int queueIndex);
+
 
 
 

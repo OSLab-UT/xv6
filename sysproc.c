@@ -146,12 +146,9 @@ sys_changeprocessqueue(void)
     return -1;
   if(process->queueIndex >= NQUEUE || process->queueIndex < 0)
     return -1;
-  int procQueueFront = schedulingQueues[process->queueIndex].front;
-  if(schedulingQueues[process->queueIndex].array[procQueueFront] != process)
-    return -1;
-  
-  LIFO_dequeue(&schedulingQueues[process->queueIndex]);
-  enqueue(&schedulingQueues[queueIndex], process);
+  int procQueueFront = getSchedulingQueueFront(process->queueIndex);
+  LIFO_dequeue(process->queueIndex);
+  enqueue(process->queueIndex, process);
   return 0;
 }
 

@@ -68,15 +68,3 @@ struct proc {
 //   fixed-size stack
 //   expandable heap
 
-// LIFO Queue
-struct Queue {
-  int front, rear, size;
-  struct spinlock lock;
-  struct proc* array[NPROC];
-};
-
-extern struct Queue schedulingQueues[NQUEUE];
-extern struct {
-  struct spinlock lock;
-  struct proc proc[NPROC];
-} ptable;

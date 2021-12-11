@@ -7,10 +7,19 @@
 #include "proc.h"
 #include "spinlock.h"
 
-
 struct Queue LCFS_queue;
 
+struct Queue {
+  int front, rear, size;
+  struct spinlock lock;
+  struct proc* array[NPROC];
+};
+struct Queue schedulingQueues[NQUEUE];
 
+struct  {
+  struct spinlock lock;
+  struct proc proc[NPROC];
+} ptable;
 
 static struct proc *initproc;
 
@@ -442,23 +451,23 @@ int isFull(struct Queue* queue)
   return (queue->size == NPROC);
 }
 
-void enqueue(struct Queue* queue, struct proc* item)
+void enqueue(int queueIndex, struct proc* item)
 {
-  if (isFull(queue))
+  if (isFull(&schedulingQueues[queueIndex]))
     panic("Queue is full.");
-  queue->rear = (queue->rear + 1) % NPROC;
-  queue->array[queue->rear] = item;
-  queue->size = queue->size + 1;
+  schedulingQueues[queueIndex].rear = (schedulingQueues[queueIndex].rear + 1) % NPROC;
+  schedulingQueues[queueIndex].array[schedulingQueues[queueIndex].rear] = item;
+  schedulingQueues[queueIndex].size = schedulingQueues[queueIndex].size + 1;
 }
 
 // dequeue for RR and LCFS
-struct proc* LIFO_dequeue(struct Queue* queue)
+struct proc* LIFO_dequeue(int queueIndex)
 {
-  if (isEmpty(queue))
+  if (isEmpty(&schedulingQueues[queueIndex]))
     panic("Queue is empty.");
-  struct proc* item = queue->array[queue->front];
-  queue->front = (queue->front + 1) % NPROC;
-  queue->size = queue->size - 1;
+  struct proc* item = schedulingQueues[queueIndex].array[schedulingQueues[queueIndex].front];
+  schedulingQueues[queueIndex].front = (schedulingQueues[queueIndex].front + 1) % NPROC;
+  schedulingQueues[queueIndex].size = schedulingQueues[queueIndex].size + 1;
   return item;
 }
 
@@ -689,3 +698,9 @@ findprocbypid(int pid)
   release(&ptable.lock);
   return proc;
 } 
+
+int
+getSchedulingQueueFront(int queueIndex)
+{
+  return schedulingQueues[queueIndex].front;
+}
