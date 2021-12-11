@@ -24,4 +24,6 @@
 #define SYS_getfilesectors 23
 #define SYS_setprocessparent 24
 #define SYS_getparentpid 25
-#define SYS_changeprocessqueue
+#define SYS_changeprocessqueue 26
+#define SYS_printallprocesses 27
+#define SYS_setMHRRN 

@@ -11,15 +11,8 @@
 struct Queue LCFS_queue;
 struct Queue RR_scheduler;
 
-struct {
-  struct spinlock lock;
-  struct proc proc[NPROC];
-} ptable;
-struct Queue {
-  int front, rear, size;
-  struct spinlock lock;
-  struct proc array[NPROC];
-};
+
+
 static struct proc *initproc;
 
 int nextpid = 1;
@@ -509,7 +502,7 @@ struct proc* LIFO_dequeue(struct Queue* queue)
 }
 
 // dequeue for MHRRN
-struct proc MHRRN_dequeue(struct Queue* queue)
+struct proc* MHRRN_dequeue(struct Queue* queue)
 {
   if (isEmpty(queue))
     panic("Queue is empty.");
@@ -518,23 +511,23 @@ struct proc MHRRN_dequeue(struct Queue* queue)
   int max_place = -1;
   for (int i = 0; i < queue->size; i++){
     int curr = (queue->front + i) % NPROC;
-    int waiting_time = /*current_time - */queue->array[curr].ctime;
+    int waiting_time = /*current_time - */queue->array[curr]->ctime;
     // current time probably can give from int sys_uptime(void) in line 82 sysproc.c
-    int ECN = queue->array[curr].ExeCycleNum;
+    int ECN = queue->array[curr]->ExeCycleNum;
     float HRRN = (waiting_time - ECN) / ECN;
-    float MHRRN = (HRRN + queue->array[curr].HRRNpriority) / 2;
+    float MHRRN = (HRRN + queue->array[curr]->HRRNpriority) / 2;
     if (MHRRN > max){
       max = MHRRN;
       max_place = curr;
     }
   }
-  struct proc item = queue->array[queue->front];
+  struct proc* item = queue->array[queue->front];
   if (max_place != queue->front){
-    struct proc temp = queue->array[max_place];
+    struct proc* temp = queue->array[max_place];
     queue->array[max_place] = item;
     item = temp;
   }
-  queue->front = (queue->front + 1) % queue->capacity;
+  queue->front = (queue->front + 1) % NPROC;
   queue->size = queue->size - 1;
   return item;
 }

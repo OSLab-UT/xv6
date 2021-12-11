@@ -154,3 +154,17 @@ sys_changeprocessqueue(void)
   enqueue(&schedulingQueues[queueIndex], process);
   return 0;
 }
+
+int
+sys_printallprocesses(void)
+{
+  acquire(&ptable.lock);
+  struct proc* p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->state != UNUSED)
+    {
+      cprintf("%s %d %s %d %d %d\n", p->name, p->pid, PROCESS_STATE[p->state], p->queueIndex, p->ExeCycleNum, p->ctime);
+    }
+  }
+}
