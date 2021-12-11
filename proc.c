@@ -15,11 +15,6 @@ struct {
   struct proc proc[NPROC];
 } ptable;
 
-struct Queue {
-  int front, rear, size;
-  struct spinlock lock;
-  struct proc array[NPROC];
-};
 static struct proc *initproc;
 
 int nextpid = 1;
@@ -450,7 +445,7 @@ int isFull(struct Queue* queue)
   return (queue->size == NPROC);
 }
 
-void enqueue(struct Queue* queue, struct proc item)
+void enqueue(struct Queue* queue, struct proc* item)
 {
   if (isFull(queue))
     panic("Queue is full.");
@@ -460,11 +455,11 @@ void enqueue(struct Queue* queue, struct proc item)
 }
 
 // dequeue for RR and LCFS
-struct proc LIFO_dequeue(struct Queue* queue)
+struct proc* LIFO_dequeue(struct Queue* queue)
 {
   if (isEmpty(queue))
     panic("Queue is empty.");
-  struct proc item = queue->array[queue->front];
+  struct proc* item = queue->array[queue->front];
   queue->front = (queue->front + 1) % NPROC;
   queue->size = queue->size - 1;
   return item;

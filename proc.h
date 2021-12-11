@@ -58,6 +58,7 @@ struct proc {
   int ctime;
   int etime;
   int rtime;
+  int queueIndex;
 };
 
 // Process memory is laid out contiguously, low addresses first:
@@ -67,3 +68,10 @@ struct proc {
 //   expandable heap
 
 // LIFO Queue
+struct Queue {
+  int front, rear, size;
+  struct spinlock lock;
+  struct proc* array[NPROC];
+};
+
+extern struct Queue schedulingQueues[NQUEUE];

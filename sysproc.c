@@ -133,3 +133,24 @@ sys_getparentpid(void)
     return parent->pid;
   return 0;
 }
+
+int
+sys_changeprocessqueue(void)
+{
+  int pid, queueIndex;
+  if(argint(0, &pid) < 0 || argint(0, &queueIndex) < 0)
+    return -1;
+  
+  struct proc* process = findprocbypid(pid);
+  if(process == 0)
+    return -1;
+  if(process->queueIndex >= NQUEUE || process->queueIndex < 0)
+    return -1;
+  int procQueueFront = schedulingQueues[process->queueIndex].front;
+  if(schedulingQueues[process->queueIndex].array[procQueueFront] != process)
+    return -1;
+  
+  LIFO_dequeue(&schedulingQueues[process->queueIndex]);
+  enqueue(&schedulingQueues[queueIndex], process);
+  return 0;
+}

@@ -107,6 +107,7 @@ extern int sys_digitsum(void);
 extern int sys_getfilesectors(void);
 extern int sys_setprocessparent(void);
 extern int sys_getparentpid(void);
+extern int sys_changeprocessqueue(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -133,7 +134,8 @@ static int (*syscalls[])(void) = {
 [SYS_digitsum] sys_digitsum,
 [SYS_getfilesectors] sys_getfilesectors,
 [SYS_setprocessparent] sys_setprocessparent,
-[SYS_getparentpid] sys_getparentpid
+[SYS_getparentpid] sys_getparentpid,
+[SYS_changeprocessqueue] sys_changeprocessqueue
 };
 
 void
