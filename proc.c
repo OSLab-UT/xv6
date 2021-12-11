@@ -9,6 +9,7 @@
 
 
 struct Queue LCFS_queue;
+struct Queue RR_scheduler;
 
 struct {
   struct spinlock lock;
@@ -430,6 +431,44 @@ void LCFS_scheduler(void){
 
 }
 
+void RR_scheduler(void){
+  struct proc *p;
+  struct cpu *c = mycpu();
+  c->proc = 0;
+  for(;;){
+    // Enable interrupts on this processor.
+    sti();
+
+    // Loop over process table looking for process to run.
+    acquire(&RR_queue.lock);
+
+
+    /* In this place we should replce the below for loop
+      with a loop on queues and in this loop we should write
+      a loop on each queue */
+    while(!isEmpty(RR_queue)){
+      p=LIFO_dequeue(&RR_queue);
+      if(p->state != RUNNABLE){
+        i++;
+        continue;
+      }
+      switchuvm(p);
+      p->state = RUNNING;
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+      if(p->etime==0)
+        enqueue(&RR_queue,p);
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+    }
+    release(&ptable.lock);
+
+  }
+}
 // create queue with given capacity.
 struct Queue create_queue(){
   struct Queue queue;
