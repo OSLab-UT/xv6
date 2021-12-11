@@ -22,12 +22,15 @@ struct  {
 } ptable;
 
 static struct proc *initproc;
+extern struct Queue schedulingQueues[NQUEUE];
 
 int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+
+int isEmpty(struct Queue* queue);
 
 void
 pinit(void)
@@ -397,15 +400,32 @@ void LCFS_scheduler(void){
 
     // Loop over process table looking for process to run.
     acquire(&LCFS_queue.lock);
-
-
+    
+    if(isEmpty(&LCFS_queue)){
+      release(&LCFS_queue.lock);
+      break;
+    }
     /* In this place we should replce the below for loop
       with a loop on queues and in this loop we should write
       a loop on each queue */
-    int max_creation_time=-1;
-    struct proc* max_creation_time_proc;
+    p = LIFO_dequeue(&LCFS_queue);
+    while(p->state == RUNNABLE){
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
 
-    for(p = LCFS_queue.array; p < &LCFS_queue.array[NPROC]; p++){
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    }
+    /*int max_creation_time=LCFS_queue.array[LCFS_queue.front]->ctime;
+    struct proc* max_creation_time_proc=LCFS_queue.array[LCFS_queue.front];
+
+    for(int i = LCFS_queue.front; i != LCFS_queue.rear; i = (i + 1) % NPROC){
+      p = LCFS_queue.array[i];
       if(p->state != RUNNABLE)
         continue;
       if(p->ctime > max_creation_time){
@@ -421,18 +441,18 @@ void LCFS_scheduler(void){
       max_creation_time_proc->state = RUNNING;
 
       swtch(&(c->scheduler), max_creation_time_proc->context);
-      switchkvm();
+      switchkvm();*/
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
-      c->proc = 0;
-    release(&ptable.lock);
+      //c->proc = 0;
+    release(&LCFS_queue.lock);
 
   }
 
 }
 
-// create queue with given capacity.
+// create queue with default capacity.
 struct Queue create_queue(){
   struct Queue queue;
   queue.front=0;

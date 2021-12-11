@@ -52,7 +52,7 @@ struct proc {
   char name[16];               // Process name (debugging)
   struct proc *debugger;       // Debugger process
   int isBeingDebugged;         // If non-zero, the process is being debugged
-  int creationTime;            // The time of process creation
+  //int creationTime;            // The time of process creation
   //int arrivalTime;             // For MHRRN queue
   int ExeCycleNum;             // Execution cycle number in MHRRN queue
   float HRRNpriority;          // The factor in MHRRN algorithm 
@@ -67,4 +67,3 @@ struct proc {
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
-
