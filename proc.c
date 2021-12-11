@@ -7,19 +7,33 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define LCFS_QUEUE_INDEX 2
 
 struct Queue LCFS_queue;
 struct Queue RR_scheduler;
 
+struct Queue {
+  int front, rear, size;
+  struct spinlock lock;
+  struct proc* array[NPROC];
+};
+struct Queue schedulingQueues[NQUEUE];
 
+struct  {
+  struct spinlock lock;
+  struct proc proc[NPROC];
+} ptable;
 
 static struct proc *initproc;
+extern struct Queue schedulingQueues[NQUEUE];
 
 int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+
+int isEmpty(struct Queue* queue);
 
 void
 pinit(void)
@@ -388,16 +402,33 @@ void LCFS_scheduler(void){
     sti();
 
     // Loop over process table looking for process to run.
-    acquire(&LCFS_queue.lock);
-
-
+    acquire(&schedulingQueues[LCFS_QUEUE_INDEX].lock);
+    
+    if(isEmpty(&schedulingQueues[LCFS_QUEUE_INDEX])){
+      release(&schedulingQueues[LCFS_QUEUE_INDEX].lock);
+      break;
+    }
     /* In this place we should replce the below for loop
       with a loop on queues and in this loop we should write
       a loop on each queue */
-    int max_creation_time=-1;
-    struct proc* max_creation_time_proc;
+    p = LIFO_dequeue(LCFS_QUEUE_INDEX);
+    while(p->state == RUNNABLE){
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
 
-    for(p = LCFS_queue.array; p < &LCFS_queue.array[NPROC]; p++){
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    }
+    /*int max_creation_time=LCFS_queue.array[LCFS_queue.front]->ctime;
+    struct proc* max_creation_time_proc=LCFS_queue.array[LCFS_queue.front];
+
+    for(int i = LCFS_queue.front; i != LCFS_queue.rear; i = (i + 1) % NPROC){
+      p = LCFS_queue.array[i];
       if(p->state != RUNNABLE)
         continue;
       if(p->ctime > max_creation_time){
@@ -413,12 +444,12 @@ void LCFS_scheduler(void){
       max_creation_time_proc->state = RUNNING;
 
       swtch(&(c->scheduler), max_creation_time_proc->context);
-      switchkvm();
+      switchkvm();*/
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
-      c->proc = 0;
-    release(&ptable.lock);
+      //c->proc = 0;
+    release(&schedulingQueues[LCFS_QUEUE_INDEX].lock);
 
   }
 
@@ -462,7 +493,8 @@ void RR_scheduler(void){
 
   }
 }
-// create queue with given capacity.
+
+// create queue with default capacity.
 struct Queue create_queue(){
   struct Queue queue;
   queue.front=0;
@@ -481,23 +513,23 @@ int isFull(struct Queue* queue)
   return (queue->size == NPROC);
 }
 
-void enqueue(struct Queue* queue, struct proc* item)
+void enqueue(int queueIndex, struct proc* item)
 {
-  if (isFull(queue))
+  if (isFull(&schedulingQueues[queueIndex]))
     panic("Queue is full.");
-  queue->rear = (queue->rear + 1) % NPROC;
-  queue->array[queue->rear] = item;
-  queue->size = queue->size + 1;
+  schedulingQueues[queueIndex].rear = (schedulingQueues[queueIndex].rear + 1) % NPROC;
+  schedulingQueues[queueIndex].array[schedulingQueues[queueIndex].rear] = item;
+  schedulingQueues[queueIndex].size = schedulingQueues[queueIndex].size + 1;
 }
 
 // dequeue for RR and LCFS
-struct proc* LIFO_dequeue(struct Queue* queue)
+struct proc* LIFO_dequeue(int queueIndex)
 {
-  if (isEmpty(queue))
+  if (isEmpty(&schedulingQueues[queueIndex]))
     panic("Queue is empty.");
-  struct proc* item = queue->array[queue->front];
-  queue->front = (queue->front + 1) % NPROC;
-  queue->size = queue->size - 1;
+  struct proc* item = schedulingQueues[queueIndex].array[schedulingQueues[queueIndex].front];
+  schedulingQueues[queueIndex].front = (schedulingQueues[queueIndex].front + 1) % NPROC;
+  schedulingQueues[queueIndex].size = schedulingQueues[queueIndex].size + 1;
   return item;
 }
 
@@ -728,3 +760,25 @@ findprocbypid(int pid)
   release(&ptable.lock);
   return proc;
 } 
+
+int
+getSchedulingQueueFront(int queueIndex)
+{
+  return schedulingQueues[queueIndex].front;
+}
+
+const char PROCESS_STATE[6][16] = {"UNUSED", "EMBRYO", "SLEEPING", "RUNNABLE", "RUNNING", "ZOMBIE"};
+
+void printAllProcesses()
+{
+  acquire(&ptable.lock);
+  struct proc* p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->state != UNUSED)
+    {
+      cprintf("%s %d %s %d %d %d\n", p->name, p->pid, PROCESS_STATE[p->state], p->queueIndex, p->ExeCycleNum, p->ctime);
+    }
+  }
+  release(&ptable.lock);
+}
