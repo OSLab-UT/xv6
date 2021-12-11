@@ -4,7 +4,9 @@
         "types.h": "c",
         "fs.h": "c",
         "fcntl.h": "c",
-        "file.h": "c"
+        "file.h": "c",
+        "memlayout.h": "c",
+        "defs.h": "c"
     },
     "files.exclude": {
         "**/.git": false
