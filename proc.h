@@ -51,6 +51,14 @@ struct proc {
   char name[16];               // Process name (debugging)
   struct proc *debugger;       // Debugger process
   int isBeingDebugged;         // If non-zero, the process is being debugged
+  int creationTime;            // The time of process creation
+  //int arrivalTime;             // For MHRRN queue
+  int ExeCycleNum;             // Execution cycle number in MHRRN queue
+  float HRRNpriority;          // The factor in MHRRN algorithm 
+  int ctime;
+  int etime;
+  int rtime;
+  int queueIndex;
 };
 
 // Process memory is laid out contiguously, low addresses first:
@@ -58,3 +66,12 @@ struct proc {
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
+
+// LIFO Queue
+struct Queue {
+  int front, rear, size;
+  struct spinlock lock;
+  struct proc* array[NPROC];
+};
+
+extern struct Queue schedulingQueues[NQUEUE];

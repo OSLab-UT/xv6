@@ -24,3 +24,4 @@
 #define SYS_getfilesectors 23
 #define SYS_setprocessparent 24
 #define SYS_getparentpid 25
+#define SYS_changeprocessqueue
