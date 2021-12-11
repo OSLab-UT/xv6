@@ -7,11 +7,18 @@
 #include "proc.h"
 #include "spinlock.h"
 
+
+struct Queue LCFS_queue;
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
-
+struct Queue {
+  int front, rear, size;
+  struct spinlock lock;
+  struct proc array[NPROC];
+};
 static struct proc *initproc;
 
 int nextpid = 1;
@@ -88,7 +95,8 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-
+  p->ctime = ticks; // Initialize creation time for process
+  p->rtime = 0; 
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -248,7 +256,7 @@ exit(void)
   iput(curproc->cwd);
   end_op();
   curproc->cwd = 0;
-
+  curproc->etime = ticks;
   acquire(&ptable.lock);
 
   // Parent might be sleeping in wait().
@@ -305,6 +313,9 @@ wait(void)
         p->debugger = 0;
         p->isBeingDebugged = 0;
         p->state = UNUSED;
+        p->ctime = 0; // Reinitialising creation time of process
+        p->etime = 0; // Reinitialising end time of process
+        p->rtime = 0; // Reinitialising run time of process
         release(&ptable.lock);
         return pid;
       }
@@ -373,19 +384,61 @@ scheduler(void)
   }
 }
 
-// create queue with given capacity.
-struct Queue* createQueue(unsigned capacity)
-{
-  // replace malloc with memory allocation function in xv6
-  struct Queue* queue = (struct Queue*)malloc(sizeof(struct Queue));
-  queue->capacity = capacity;
-  queue->front = queue->size = 0;
-  queue->rear = capacity - 1;
-  // replace malloc with memory allocation function in xv6
-  queue->array = (struct proc**)malloc(queue->capacity * sizeof(struct proc*));
-  return queue;
+void LCFS_scheduler(void){
+  struct proc *p;
+  struct cpu *c = mycpu();
+  c->proc = 0;
+  
+  for(;;){
+    // Enable interrupts on this processor.
+    sti();
+
+    // Loop over process table looking for process to run.
+    acquire(&LCFS_queue.lock);
+
+
+    /* In this place we should replce the below for loop
+      with a loop on queues and in this loop we should write
+      a loop on each queue */
+    int max_creation_time=-1;
+    struct proc* max_creation_time_proc;
+
+    for(p = LCFS_queue.array; p < &LCFS_queue.array[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+      if(p->ctime > max_creation_time){
+        max_creation_time=p->ctime;
+        max_creation_time_proc=p;
+      }
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+    }
+      c->proc = max_creation_time_proc;
+      switchuvm(max_creation_time_proc);
+      max_creation_time_proc->state = RUNNING;
+
+      swtch(&(c->scheduler), max_creation_time_proc->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    release(&ptable.lock);
+
+  }
+
 }
 
+// create queue with given capacity.
+struct Queue create_queue(){
+  struct Queue queue;
+  queue.front=0;
+  queue.rear=0;
+  queue.size=0;
+  return queue;
+
+}
 int isEmpty(struct Queue* queue)
 {
   return (queue->size == 0);
@@ -393,31 +446,31 @@ int isEmpty(struct Queue* queue)
 
 int isFull(struct Queue* queue)
 {
-  return (queue->size == queue->capacity);
+  return (queue->size == NPROC);
 }
 
-void enqueue(struct Queue* queue, struct proc* item)
+void enqueue(struct Queue* queue, struct proc item)
 {
   if (isFull(queue))
     panic("Queue is full.");
-  queue->rear = (queue->rear + 1) % queue->capacity;
+  queue->rear = (queue->rear + 1) % NPROC;
   queue->array[queue->rear] = item;
   queue->size = queue->size + 1;
 }
 
 // dequeue for RR and LCFS
-struct proc* LIFO_dequeue(struct Queue* queue)
+struct proc LIFO_dequeue(struct Queue* queue)
 {
   if (isEmpty(queue))
     panic("Queue is empty.");
-  struct proc* item = queue->array[queue->front];
-  queue->front = (queue->front + 1) % queue->capacity;
+  struct proc item = queue->array[queue->front];
+  queue->front = (queue->front + 1) % NPROC;
   queue->size = queue->size - 1;
   return item;
 }
 
 // dequeue for MHRRN
-struct proc* MHRRN_dequeue(struct Queue* queue)
+struct proc MHRRN_dequeue(struct Queue* queue)
 {
   if (isEmpty(queue))
     panic("Queue is empty.");
@@ -425,20 +478,20 @@ struct proc* MHRRN_dequeue(struct Queue* queue)
   float max = -1000.0;
   int max_place = -1;
   for (int i = 0; i < queue->size; i++){
-    int curr = (queue->front + i) % queue->capacity;
-    int waiting_time = /*current_time - */queue->array[curr]->creationTime;
+    int curr = (queue->front + i) % NPROC;
+    int waiting_time = /*current_time - */queue->array[curr].ctime;
     // current time probably can give from int sys_uptime(void) in line 82 sysproc.c
-    int ECN = queue->array[curr]->ExeCycleNum;
+    int ECN = queue->array[curr].ExeCycleNum;
     float HRRN = (waiting_time - ECN) / ECN;
-    float MHRRN = (HRRN + queue->array[curr]->HRRNpriority) / 2;
+    float MHRRN = (HRRN + queue->array[curr].HRRNpriority) / 2;
     if (MHRRN > max){
       max = MHRRN;
       max_place = curr;
     }
   }
-  struct proc* item = queue->array[queue->front];
+  struct proc item = queue->array[queue->front];
   if (max_place != queue->front){
-    struct proc* temp = queue->array[max_place];
+    struct proc temp = queue->array[max_place];
     queue->array[max_place] = item;
     item = temp;
   }
