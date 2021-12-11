@@ -33,6 +33,7 @@ struct context {
 };
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+const char PROCESS_STATE[6][16] = {"UNUSED", "EMBRYO", "SLEEPING", "RUNNABLE", "RUNNING", "ZOMBIE"};
 
 // Per-process state
 struct proc {
@@ -58,7 +59,7 @@ struct proc {
   int ctime;
   int etime;
   int rtime;
-  int queueIndex;
+  int queueIndex;             // Index of the scheduling queue that contains this process
 };
 
 // Process memory is laid out contiguously, low addresses first:
@@ -66,12 +67,3 @@ struct proc {
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
-
-// LIFO Queue
-/*struct Queue {
-  int front, rear, size;
-  //struct spinlock lock;
-  struct proc* array[NPROC];
-};*/
-
-//extern struct Queue schedulingQueues[NQUEUE];
