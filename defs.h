@@ -129,7 +129,7 @@ struct proc*    findprocbypid(int);
 struct proc*    LIFO_dequeue(int queueIndex);
 void            enqueue(int queueIndex, struct proc* item);
 int             getSchedulingQueueFront(int queueIndex);
-
+void            printAllProcesses(void);
 
 
 
