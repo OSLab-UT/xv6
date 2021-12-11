@@ -138,7 +138,7 @@ int
 sys_changeprocessqueue(void)
 {
   int pid, queueIndex;
-  if(argint(0, &pid) < 0 || argint(0, &queueIndex) < 0)
+  if(argint(0, &pid) < 0 || argint(1, &queueIndex) < 0)
     return -1;
   
   struct proc* process = findprocbypid(pid);
@@ -167,4 +167,31 @@ sys_printallprocesses(void)
       cprintf("%s %d %s %d %d %d\n", p->name, p->pid, PROCESS_STATE[p->state], p->queueIndex, p->ExeCycleNum, p->ctime);
     }
   }
+  release(&ptable.lock);
+  return 0;
+}
+
+int
+sys_setMHRRNprocessspace(void)
+{
+  int MHRRNfactor;
+  if(argint(0, &MHRRNfactor) < 0)
+    return -1;
+  struct proc* p = myproc();
+  p->HRRNpriority = MHRRNfactor;
+  return 0;
+}
+
+int
+sys_setMHRRNkernelspace(void)
+{
+  int pid, MHRRNfactor;
+  if(argint(0, &pid) < 0 || argint(1, &MHRRNfactor) < 0)
+    return -1;
+  
+  struct proc* p = findprocbypid(pid);
+  if(p == 0)
+    return -1;
+  p->HRRNpriority = MHRRNfactor;
+  return 0;
 }

@@ -109,6 +109,8 @@ extern int sys_setprocessparent(void);
 extern int sys_getparentpid(void);
 extern int sys_changeprocessqueue(void);
 extern int sys_printallprocesses(void);
+extern int sys_setMHRRNprocessspace(void);
+extern int sys_setMHRRNkernelspace(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -137,7 +139,9 @@ static int (*syscalls[])(void) = {
 [SYS_setprocessparent] sys_setprocessparent,
 [SYS_getparentpid] sys_getparentpid,
 [SYS_changeprocessqueue] sys_changeprocessqueue,
-[SYS_printallprocesses] sys_printallprocesses
+[SYS_printallprocesses] sys_printallprocesses,
+[SYS_setMHRRNprocessspace] sys_setMHRRNprocessspace,
+[SYS_setMHRRNkernelspace] sys_setMHRRNkernelspace
 };
 
 void

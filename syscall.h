@@ -26,4 +26,5 @@
 #define SYS_getparentpid 25
 #define SYS_changeprocessqueue 26
 #define SYS_printallprocesses 27
-#define SYS_setMHRRN 
+#define SYS_setMHRRNprocessspace 28
+#define SYS_setMHRRNkernelspace 29

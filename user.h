@@ -28,6 +28,9 @@ int getfilesectors(int, int*);
 int setprocessparent(int);
 int getparentpid(void);
 int changeprocessqueue(int, int);
+int printallprocesses(void);
+int setMHRRNprocessspace(int);
+int setMHRRNkernelspace(int, int);
 
 // ulib.c
 int stat(const char*, struct stat*);
