@@ -7,7 +7,9 @@
 #include "proc.h"
 #include "spinlock.h"
 
-struct Queue LCFS_queue;
+#define LCFS_QUEUE_INDEX 2
+
+//struct Queue LCFS_queue;
 
 struct Queue {
   int front, rear, size;
@@ -399,16 +401,16 @@ void LCFS_scheduler(void){
     sti();
 
     // Loop over process table looking for process to run.
-    acquire(&LCFS_queue.lock);
+    acquire(&schedulingQueues[LCFS_QUEUE_INDEX].lock);
     
-    if(isEmpty(&LCFS_queue)){
-      release(&LCFS_queue.lock);
+    if(isEmpty(&schedulingQueues[LCFS_QUEUE_INDEX])){
+      release(&schedulingQueues[LCFS_QUEUE_INDEX].lock);
       break;
     }
     /* In this place we should replce the below for loop
       with a loop on queues and in this loop we should write
       a loop on each queue */
-    p = LIFO_dequeue(&LCFS_queue);
+    p = LIFO_dequeue(LCFS_QUEUE_INDEX);
     while(p->state == RUNNABLE){
       c->proc = p;
       switchuvm(p);
@@ -446,7 +448,7 @@ void LCFS_scheduler(void){
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       //c->proc = 0;
-    release(&LCFS_queue.lock);
+    release(&schedulingQueues[LCFS_QUEUE_INDEX].lock);
 
   }
 
@@ -724,6 +726,8 @@ getSchedulingQueueFront(int queueIndex)
 {
   return schedulingQueues[queueIndex].front;
 }
+
+const char PROCESS_STATE[6][16] = {"UNUSED", "EMBRYO", "SLEEPING", "RUNNABLE", "RUNNING", "ZOMBIE"};
 
 void printAllProcesses()
 {
