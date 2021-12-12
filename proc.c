@@ -7,10 +7,11 @@
 #include "proc.h"
 #include "spinlock.h"
 
-#define LCFS_QUEUE_INDEX 2
+#define LCFS_QUEUE_INDEX 1
+#define RR_QUEUE_INDEX 0
 
-struct Queue LCFS_queue;
-struct Queue RR_scheduler;
+//struct Queue LCFS_queue;
+//struct Queue RR_scheduler;
 
 struct Queue {
   int front, rear, size;
@@ -464,33 +465,29 @@ void RR_scheduler(void){
     sti();
 
     // Loop over process table looking for process to run.
-    acquire(&RR_queue.lock);
+    acquire(&schedulingQueues[RR_QUEUE_INDEX].lock);
 
-
+    if(isEmpty(&schedulingQueues[RR_QUEUE_INDEX])){
+      release(&schedulingQueues[RR_QUEUE_INDEX].lock);
+      break;
+    }
     /* In this place we should replce the below for loop
       with a loop on queues and in this loop we should write
       a loop on each queue */
-    while(!isEmpty(RR_queue)){
-      p=LIFO_dequeue(&RR_queue);
-      if(p->state != RUNNABLE){
-        i++;
-        continue;
-      }
-      switchuvm(p);
-      p->state = RUNNING;
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-      if(p->etime==0)
-        enqueue(&RR_queue,p);
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-    }
-    release(&ptable.lock);
-
+    p=LIFO_dequeue(RR_QUEUE_INDEX);
+    switchuvm(p);
+    p->state = RUNNING;
+    swtch(&(c->scheduler), p->context);
+    switchkvm();
+    if(p->etime==0)
+      enqueue(RR_QUEUE_INDEX, p);
+    // Process is done running for now.
+    // It should have changed its p->state before coming back.
+    c->proc = 0;
+    // Switch to chosen process.  It is the process's job
+    // to release ptable.lock and then reacquire it
+    // before jumping back to us.
+    release(&schedulingQueues[RR_QUEUE_INDEX].lock);
   }
 }
 
