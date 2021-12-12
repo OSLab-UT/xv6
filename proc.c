@@ -494,6 +494,23 @@ struct proc* MHRRN_dequeue(struct Queue* queue)
   return item;
 }
 
+// dequeue with index for ageing and change proc queue with syscall
+struct proc* index_dequeue(struct Queue* queue, int index)
+{
+  if (isEmpty(queue))
+    panic("Queue is empty.");
+
+  struct proc* item = queue->array[queue->front];
+  if (index != queue->front){
+    struct proc* temp = queue->array[index];
+    queue->array[index] = item;
+    item = temp;
+  }
+  queue->front = (queue->front + 1) % NPROC;
+  queue->size = queue->size - 1;
+  return item;
+}
+
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this
