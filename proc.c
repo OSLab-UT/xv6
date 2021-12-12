@@ -10,6 +10,7 @@
 #define MHRRN_QUEUE_INDEX 2
 #define LCFS_QUEUE_INDEX 1
 #define RR_QUEUE_INDEX 0
+#define AGE_LIMMIT 8000
 
 //struct Queue LCFS_queue;
 //struct Queue RR_scheduler;
@@ -359,7 +360,7 @@ scheduler(void)
   for(;;){
     // Enable interrupts on this processor.
     sti();
-
+    ageing();
     if(isEmpty(&schedulingQueues[RR_QUEUE_INDEX]) == 0){
       RR_scheduler(c);
     }
@@ -368,6 +369,37 @@ scheduler(void)
     }
     else if(isEmpty(&schedulingQueues[MHRRN_QUEUE_INDEX]) == 0){
       MHRRN_scheduler(c);
+    }
+  }
+}
+
+void ageing(void){
+  struct Queue* queue = &schedulingQueues[LCFS_QUEUE_INDEX];
+  for (int i = 0; i < queue->size; i++){
+    int curr = (queue->front + i) % NPROC;
+    if (queue->array[curr]->age >= AGE_LIMMIT){
+      struct proc* old = index_dequeue(queue, curr);
+      old->age = 0;
+      enqueue(RR_QUEUE_INDEX, old);
+      i--;
+      continue;
+    } 
+    else{
+      queue->array[curr]->age += 1;
+    }
+  }
+  queue = &schedulingQueues[MHRRN_QUEUE_INDEX];
+  for (int i = 0; i < queue->size; i++){
+    int curr = (queue->front + i) % NPROC;
+    if (queue->array[curr]->age >= AGE_LIMMIT){
+      struct proc* old = index_dequeue(queue, curr);
+      old->age = 0;
+      enqueue(RR_QUEUE_INDEX, old);
+      i--;
+      continue;
+    } 
+    else{
+      queue->array[curr]->age += 1;
     }
   }
 }
