@@ -566,11 +566,9 @@ struct proc* index_dequeue(struct Queue* queue, int index)
 {
   if (isEmpty(queue))
     panic("Queue is empty.");
-  struct proc* ret;
-  struct proc* item = queue->array[queue->front];
+  struct proc* ret = queue->array[queue->front];
   if (index != queue->front){
     ret = queue->array[index];
-    queue->array[index] = item;
   }
 
   struct proc* tempForPrevProc = 0;
@@ -591,7 +589,7 @@ struct proc* index_dequeue(struct Queue* queue, int index)
 
   queue->front = (queue->front + 1) % NPROC;
   queue->size = queue->size - 1;
-  return item;
+  return ret;
 }
 
 // Enter scheduler.  Must hold only ptable.lock
