@@ -136,6 +136,7 @@ void            RR_scheduler(struct cpu *c);
 int             getSchedulingQueueFront(int queueIndex);
 void            printAllProcesses(void);
 void            ageing(void);
+void            add_new_process_to_queues(void);
 
 
 

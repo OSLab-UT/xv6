@@ -12,3 +12,7 @@
 #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
 #define FSSIZE       1000  // size of file system in blocks
 #define NQUEUE       3  // number of queues used for scheduling
+#define MHRRN_QUEUE_INDEX   2 
+#define LCFS_QUEUE_INDEX    1
+#define RR_QUEUE_INDEX      0
+#define AGE_LIMIT          8000 // age limitation for process in queues

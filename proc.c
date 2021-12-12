@@ -7,11 +7,6 @@
 #include "proc.h"
 #include "spinlock.h"
 
-#define MHRRN_QUEUE_INDEX 2
-#define LCFS_QUEUE_INDEX 1
-#define RR_QUEUE_INDEX 0
-#define AGE_LIMMIT 8000
-
 //struct Queue LCFS_queue;
 //struct Queue RR_scheduler;
 
@@ -360,6 +355,7 @@ scheduler(void)
   for(;;){
     // Enable interrupts on this processor.
     sti();
+    add_new_process_to_queues();
     ageing();
     if(isEmpty(&schedulingQueues[RR_QUEUE_INDEX]) == 0){
       RR_scheduler(c);
@@ -373,11 +369,41 @@ scheduler(void)
   }
 }
 
-void ageing(void){
+void add_new_process_to_queues(void)
+{
+  struct proc* p;
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state != RUNNABLE)
+      continue;
+
+    int found = 0;
+    for(int i = 0; i < NQUEUE; i++){
+      struct Queue* queue = &schedulingQueues[i];
+      for (int i = 0; i < queue->size; i++){
+        int curr = (queue->front + i) % NPROC;
+        if (queue->array[curr]->pid == p->pid){
+          found = 1;
+          break;
+        } 
+      }
+      if(found)
+        break;
+    }
+    if(found)
+      continue;
+
+    enqueue(LCFS_QUEUE_INDEX, p);
+  }
+  release(&ptable.lock);
+}
+
+void ageing(void)
+{
   struct Queue* queue = &schedulingQueues[LCFS_QUEUE_INDEX];
   for (int i = 0; i < queue->size; i++){
     int curr = (queue->front + i) % NPROC;
-    if (queue->array[curr]->age >= AGE_LIMMIT){
+    if (queue->array[curr]->age >= AGE_LIMIT){
       struct proc* old = index_dequeue(queue, curr);
       old->age = 0;
       enqueue(RR_QUEUE_INDEX, old);
@@ -391,7 +417,7 @@ void ageing(void){
   queue = &schedulingQueues[MHRRN_QUEUE_INDEX];
   for (int i = 0; i < queue->size; i++){
     int curr = (queue->front + i) % NPROC;
-    if (queue->array[curr]->age >= AGE_LIMMIT){
+    if (queue->array[curr]->age >= AGE_LIMIT){
       struct proc* old = index_dequeue(queue, curr);
       old->age = 0;
       enqueue(RR_QUEUE_INDEX, old);
