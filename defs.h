@@ -128,6 +128,7 @@ void            yield(void);
 struct proc*    findprocbypid(int); 
 struct proc*    LIFO_dequeue(int queueIndex);
 struct proc*    MHRRN_dequeue(struct Queue* queue);
+struct proc*    index_dequeue(struct Queue* queue, int index);
 void            enqueue(int queueIndex, struct proc* item);
 void            MHRRN_scheduler(struct cpu *c);
 void            LCFS_scheduler(struct cpu *c);
