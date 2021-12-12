@@ -136,12 +136,10 @@ void            RR_scheduler(struct cpu *c);
 int             getSchedulingQueueFront(int queueIndex);
 void            printAllProcesses(void);
 void            ageing(void);
+void            add_new_process_to_queues(void);
 int             getProcessIndexInQueue(int queueIndex, struct proc* process);
 struct proc*    index_dequeue(struct Queue* queue, int index);
 struct proc*    index_dequeue_help(int queueIndex, int procIndex);
-
-
-
 
 
 // swtch.S
