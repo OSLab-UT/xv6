@@ -393,6 +393,14 @@ void add_new_process_to_queues(void)
     if(found)
       continue;
 
+    // first initialization
+    p->ExeCycleNum = 0;
+    p->HRRNpriority = 1;
+    //p->ctime;
+    //p->etime;
+    //p->rtime;
+    p->queueIndex = LCFS_QUEUE_INDEX;
+    p->age = 0;   
     enqueue(LCFS_QUEUE_INDEX, p);
   }
   release(&ptable.lock);
@@ -406,6 +414,7 @@ void ageing(void)
     if (queue->array[curr]->age >= AGE_LIMIT){
       struct proc* old = index_dequeue(queue, curr);
       old->age = 0;
+      old->queueIndex = RR_QUEUE_INDEX;
       enqueue(RR_QUEUE_INDEX, old);
       i--;
       continue;
