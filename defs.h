@@ -135,6 +135,7 @@ void            LCFS_scheduler(struct cpu *c);
 void            RR_scheduler(struct cpu *c);
 int             getSchedulingQueueFront(int queueIndex);
 void            printAllProcesses(void);
+void            ageing(void);
 
 
 
