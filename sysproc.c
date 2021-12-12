@@ -150,6 +150,7 @@ sys_changeprocessqueue(void)
   process->age = 0;
   int index = getProcessIndexInQueue(process->queueIndex, process);
   index_dequeue(process->queueIndex, index);
+  enqueue(queueIndex, process);
   return 0;
 }
 
