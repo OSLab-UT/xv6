@@ -6,6 +6,9 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+//////////////////////
+// #include "stdio.h"
+////////////////////
 
 //struct Queue LCFS_queue;
 //struct Queue RR_scheduler;
@@ -346,6 +349,29 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
+
+//////////////
+void run_first_proc(struct cpu *c){
+  struct proc *p;
+  
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state != RUNNABLE)
+      continue;
+
+    if(p->pid < 3){
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+      c->proc = 0;
+    }
+  }    
+  release(&ptable.lock);
+}
+/////////////
+
 void
 scheduler(void)
 {
@@ -355,8 +381,11 @@ scheduler(void)
   for(;;){
     // Enable interrupts on this processor.
     sti();
+    ////////////
+    run_first_proc(c);
+    ////////////
     add_new_process_to_queues();
-    ageing();
+    /*ageing();
     if(isEmpty(&schedulingQueues[RR_QUEUE_INDEX]) == 0){
       RR_scheduler(c);
     }
@@ -365,7 +394,7 @@ scheduler(void)
     }
     else if(isEmpty(&schedulingQueues[MHRRN_QUEUE_INDEX]) == 0){
       MHRRN_scheduler(c);
-    }
+    }*/
   }
 }
 
@@ -376,6 +405,11 @@ void add_new_process_to_queues(void)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->state != RUNNABLE)
       continue;
+
+    ///////////
+    if(p->pid < 3)
+      continue;
+    /////
 
     int found = 0;
     for(int i = 0; i < NQUEUE; i++){
@@ -396,11 +430,12 @@ void add_new_process_to_queues(void)
     // first initialization
     p->ExeCycleNum = 0;
     p->HRRNpriority = 1;
-    //p->ctime;
-    //p->etime;
-    //p->rtime;
     p->queueIndex = LCFS_QUEUE_INDEX;
-    p->age = 0;   
+    p->age = 0;
+    //////////////////////
+    cprintf("Add process : %d\n", p->pid);
+    //panic("add process");
+    /////////////////   
     enqueue(LCFS_QUEUE_INDEX, p);
   }
   release(&ptable.lock);
