@@ -9,6 +9,8 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
+struct Queue;
+struct Ptable;
 
 // bio.c
 void            binit(void);
@@ -124,8 +126,14 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 struct proc*    findprocbypid(int); 
-struct proc*    LIFO_dequeue(struct Queue* queue);
-void            enqueue(struct Queue* queue, struct proc* item)
+struct proc*    LIFO_dequeue(int queueIndex);
+struct proc*    MHRRN_dequeue(struct Queue* queue);
+void            enqueue(int queueIndex, struct proc* item);
+void            MHRRN_scheduler(struct cpu *c);
+void            LCFS_scheduler(struct cpu *c);
+void            RR_scheduler(struct cpu *c);
+int             getSchedulingQueueFront(int queueIndex);
+void            printAllProcesses(void);
 
 
 
@@ -163,6 +171,9 @@ int             argstr(int, char**);
 int             fetchint(uint, int*);
 int             fetchstr(uint, char**);
 void            syscall(void);
+
+// sysproc.c
+int             sys_uptime(void);
 
 // timer.c
 void            timerinit(void);

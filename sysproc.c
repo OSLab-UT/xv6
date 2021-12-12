@@ -138,7 +138,7 @@ int
 sys_changeprocessqueue(void)
 {
   int pid, queueIndex;
-  if(argint(0, &pid) < 0 || argint(0, &queueIndex) < 0)
+  if(argint(0, &pid) < 0 || argint(1, &queueIndex) < 0)
     return -1;
   
   struct proc* process = findprocbypid(pid);
@@ -146,11 +146,40 @@ sys_changeprocessqueue(void)
     return -1;
   if(process->queueIndex >= NQUEUE || process->queueIndex < 0)
     return -1;
-  int procQueueFront = schedulingQueues[process->queueIndex].front;
-  if(schedulingQueues[process->queueIndex].array[procQueueFront] != process)
+  //int procQueueFront = getSchedulingQueueFront(process->queueIndex);
+  LIFO_dequeue(process->queueIndex);
+  enqueue(process->queueIndex, process);
+  return 0;
+}
+
+int
+sys_printallprocesses(void)
+{
+  printAllProcesses();
+  return 0;
+}
+
+int
+sys_setMHRRNprocessspace(void)
+{
+  int MHRRNfactor;
+  if(argint(0, &MHRRNfactor) < 0)
+    return -1;
+  struct proc* p = myproc();
+  p->HRRNpriority = MHRRNfactor;
+  return 0;
+}
+
+int
+sys_setMHRRNkernelspace(void)
+{
+  int pid, MHRRNfactor;
+  if(argint(0, &pid) < 0 || argint(1, &MHRRNfactor) < 0)
     return -1;
   
-  LIFO_dequeue(&schedulingQueues[process->queueIndex]);
-  enqueue(&schedulingQueues[queueIndex], process);
+  struct proc* p = findprocbypid(pid);
+  if(p == 0)
+    return -1;
+  p->HRRNpriority = MHRRNfactor;
   return 0;
 }
