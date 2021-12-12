@@ -147,6 +147,7 @@ sys_changeprocessqueue(void)
   if(process->queueIndex >= NQUEUE || process->queueIndex < 0)
     return -1;
   //int procQueueFront = getSchedulingQueueFront(process->queueIndex);
+  process->age = 0;
   LIFO_dequeue(process->queueIndex);
   enqueue(process->queueIndex, process);
   return 0;
