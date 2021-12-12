@@ -7,6 +7,7 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define MHRRN_QUEUE_INDEX 2
 #define LCFS_QUEUE_INDEX 1
 #define RR_QUEUE_INDEX 0
 
@@ -352,7 +353,6 @@ wait(void)
 void
 scheduler(void)
 {
-  struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -360,135 +360,68 @@ scheduler(void)
     // Enable interrupts on this processor.
     sti();
 
-    // Loop over process table looking for process to run.
-    acquire(&ptable.lock);
-
-
-
-    /* In this place we should replce the below for loop
-      with a loop on queues and in this loop we should write
-      a loop on each queue */
-
-
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
-
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
-
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
+    if(isEmpty(&schedulingQueues[RR_QUEUE_INDEX]) == 0){
+      RR_scheduler(c);
     }
-    release(&ptable.lock);
-
+    else if(isEmpty(&schedulingQueues[LCFS_QUEUE_INDEX]) == 0){
+      LCFS_scheduler(c);
+    }
+    else if(isEmpty(&schedulingQueues[MHRRN_QUEUE_INDEX]) == 0){
+      MHRRN_scheduler(c);
+    }
   }
 }
 
-void LCFS_scheduler(void){
+void MHRRN_scheduler(struct cpu *c){
   struct proc *p;
-  struct cpu *c = mycpu();
-  c->proc = 0;
   
-  for(;;){
-    // Enable interrupts on this processor.
-    sti();
-
-    // Loop over process table looking for process to run.
-    acquire(&schedulingQueues[LCFS_QUEUE_INDEX].lock);
+  acquire(&schedulingQueues[MHRRN_QUEUE_INDEX].lock);
     
-    if(isEmpty(&schedulingQueues[LCFS_QUEUE_INDEX])){
-      release(&schedulingQueues[LCFS_QUEUE_INDEX].lock);
-      break;
-    }
-    /* In this place we should replce the below for loop
-      with a loop on queues and in this loop we should write
-      a loop on each queue */
-    p = LIFO_dequeue(LCFS_QUEUE_INDEX);
-    while(p->state == RUNNABLE){
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
-
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
-    }
-    /*int max_creation_time=LCFS_queue.array[LCFS_queue.front]->ctime;
-    struct proc* max_creation_time_proc=LCFS_queue.array[LCFS_queue.front];
-
-    for(int i = LCFS_queue.front; i != LCFS_queue.rear; i = (i + 1) % NPROC){
-      p = LCFS_queue.array[i];
-      if(p->state != RUNNABLE)
-        continue;
-      if(p->ctime > max_creation_time){
-        max_creation_time=p->ctime;
-        max_creation_time_proc=p;
-      }
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-    }
-      c->proc = max_creation_time_proc;
-      switchuvm(max_creation_time_proc);
-      max_creation_time_proc->state = RUNNING;
-
-      swtch(&(c->scheduler), max_creation_time_proc->context);
-      switchkvm();*/
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      //c->proc = 0;
-    release(&schedulingQueues[LCFS_QUEUE_INDEX].lock);
-
-  }
-
-}
-
-void RR_scheduler(void){
-  struct proc *p;
-  struct cpu *c = mycpu();
-  c->proc = 0;
-  for(;;){
-    // Enable interrupts on this processor.
-    sti();
-
-    // Loop over process table looking for process to run.
-    acquire(&schedulingQueues[RR_QUEUE_INDEX].lock);
-
-    if(isEmpty(&schedulingQueues[RR_QUEUE_INDEX])){
-      release(&schedulingQueues[RR_QUEUE_INDEX].lock);
-      break;
-    }
-    /* In this place we should replce the below for loop
-      with a loop on queues and in this loop we should write
-      a loop on each queue */
-    p=LIFO_dequeue(RR_QUEUE_INDEX);
+  p = MHRRN_dequeue(&schedulingQueues[MHRRN_QUEUE_INDEX]);
+  while(p->state == RUNNABLE){
+    c->proc = p;
     switchuvm(p);
     p->state = RUNNING;
     swtch(&(c->scheduler), p->context);
     switchkvm();
-    if(p->etime==0)
-      enqueue(RR_QUEUE_INDEX, p);
-    // Process is done running for now.
-    // It should have changed its p->state before coming back.
     c->proc = 0;
-    // Switch to chosen process.  It is the process's job
-    // to release ptable.lock and then reacquire it
-    // before jumping back to us.
-    release(&schedulingQueues[RR_QUEUE_INDEX].lock);
   }
+  release(&schedulingQueues[MHRRN_QUEUE_INDEX].lock);
+}
+
+void LCFS_scheduler(struct cpu *c){
+  struct proc *p;
+  
+  acquire(&schedulingQueues[LCFS_QUEUE_INDEX].lock);
+    
+  p = LIFO_dequeue(LCFS_QUEUE_INDEX);
+  while(p->state == RUNNABLE){
+    c->proc = p;
+    switchuvm(p);
+    p->state = RUNNING;
+    swtch(&(c->scheduler), p->context);
+    switchkvm();
+    c->proc = 0;
+  }
+  release(&schedulingQueues[LCFS_QUEUE_INDEX].lock);
+}
+
+void RR_scheduler(struct cpu *c){
+  struct proc *p;
+
+  acquire(&schedulingQueues[RR_QUEUE_INDEX].lock);
+
+  p = LIFO_dequeue(RR_QUEUE_INDEX);
+  switchuvm(p);
+  p->state = RUNNING;
+  swtch(&(c->scheduler), p->context);
+  switchkvm();
+  if(p->etime==0)
+    enqueue(RR_QUEUE_INDEX, p);
+  // Process is done running for now.
+  // It should have changed its p->state before coming back.
+  c->proc = 0;
+  release(&schedulingQueues[RR_QUEUE_INDEX].lock);
 }
 
 // create queue with default capacity.
@@ -540,8 +473,8 @@ struct proc* MHRRN_dequeue(struct Queue* queue)
   int max_place = -1;
   for (int i = 0; i < queue->size; i++){
     int curr = (queue->front + i) % NPROC;
-    int waiting_time = /*current_time - */queue->array[curr]->ctime;
-    // current time probably can give from int sys_uptime(void) in line 82 sysproc.c
+    int waiting_time = sys_uptime() - queue->array[curr]->ctime;
+    // current time gave from int sys_uptime(void) function in line 82 sysproc.c
     int ECN = queue->array[curr]->ExeCycleNum;
     float HRRN = (waiting_time - ECN) / ECN;
     float MHRRN = (HRRN + queue->array[curr]->HRRNpriority) / 2;
