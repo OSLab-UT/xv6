@@ -566,13 +566,29 @@ struct proc* index_dequeue(struct Queue* queue, int index)
 {
   if (isEmpty(queue))
     panic("Queue is empty.");
-
+  struct proc* ret;
   struct proc* item = queue->array[queue->front];
   if (index != queue->front){
-    struct proc* temp = queue->array[index];
+    ret = queue->array[index];
     queue->array[index] = item;
-    item = temp;
   }
+
+  struct proc* tempForPrevProc = 0;
+  struct proc* secondTemp = 0;
+  for(int i = queue->front; i <= index; i = (i+1)  % NPROC)
+  {
+    if(tempForPrevProc == 0)
+    {
+      tempForPrevProc = queue->array[i];
+    }
+    else
+    {
+      secondTemp = queue->array[i];
+      queue->array[i] = tempForPrevProc;
+      tempForPrevProc = secondTemp;
+    }
+  }
+
   queue->front = (queue->front + 1) % NPROC;
   queue->size = queue->size - 1;
   return item;
@@ -795,4 +811,19 @@ void printAllProcesses()
     }
   }
   release(&ptable.lock);
+}
+
+int getProcessIndexInQueue(int queueIndex, struct proc* process)
+{
+  for(int i = schedulingQueues[queueIndex].front; i <= schedulingQueues[queueIndex].rear; i = (i+1) % NPROC)
+  {
+    if(schedulingQueues[queueIndex].array[i] == process)
+      return i;
+  }
+  return -1;
+}
+
+struct proc* index_dequeue_help(int queueIndex, int procIndex)
+{
+  return index_dequeue(&schedulingQueues[queueIndex], procIndex);
 }
