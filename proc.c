@@ -375,17 +375,51 @@ void run_first_proc(struct cpu *c){
 void
 scheduler(void)
 {
+  struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
   
   for(;;){
     // Enable interrupts on this processor.
     sti();
-    ////////////
-    run_first_proc(c);
-    ////////////
+
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+
+
+
+    /* In this place we should replce the below for loop
+      with a loop on queues and in this loop we should write
+      a loop on each queue */
+
+
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    }
+    release(&ptable.lock);
+
+  }
+
+  /*for(;;){
+    // Enable interrupts on this processor.
+    sti();
     add_new_process_to_queues();
-    /*ageing();
+    ageing();
     if(isEmpty(&schedulingQueues[RR_QUEUE_INDEX]) == 0){
       RR_scheduler(c);
     }
@@ -394,8 +428,8 @@ scheduler(void)
     }
     else if(isEmpty(&schedulingQueues[MHRRN_QUEUE_INDEX]) == 0){
       MHRRN_scheduler(c);
-    }*/
-  }
+    }
+  }*/
 }
 
 void add_new_process_to_queues(void)
