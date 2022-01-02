@@ -10,9 +10,11 @@
 #define MAXOPBLOCKS  10  // max # of blocks any FS op writes
 #define LOGSIZE      (MAXOPBLOCKS*3)  // max data blocks in on-disk log
 #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
-#define FSSIZE       1000  // size of file system in blocks
-#define NQUEUE       3  // number of queues used for scheduling
-#define AGE_LIMIT   8000 // ageing limit
+#define FSSIZE    1000   // size of file system in blocks
+#define NQUEUE       3   // number of queues used for scheduling
+#define AGE_LIMIT 8000   // ageing limit
+#define NSEM         5   // number of semaphores
+#define NPIS        64   // max number of processes in semaphore queue
 #define MHRRN_QUEUE_INDEX 2
 #define LCFS_QUEUE_INDEX 1
 #define RR_QUEUE_INDEX 0

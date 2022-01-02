@@ -11,6 +11,7 @@ struct stat;
 struct superblock;
 struct Queue;
 struct Ptable;
+struct semaphore;
 
 // bio.c
 void            binit(void);

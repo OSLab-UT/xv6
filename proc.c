@@ -6,12 +6,9 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-//////////////////////
-// #include "stdio.h"
-////////////////////
+#include "semaphore.h"
 
-//struct Queue LCFS_queue;
-//struct Queue RR_scheduler;
+struct semaphore sems[NSEM];
 
 struct Queue {
   int front, rear, size;
@@ -350,28 +347,6 @@ wait(void)
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
 
-//////////////
-void run_first_proc(struct cpu *c){
-  struct proc *p;
-  
-  acquire(&ptable.lock);
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->state != RUNNABLE)
-      continue;
-
-    if(p->pid < 3){
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-      c->proc = 0;
-    }
-  }    
-  release(&ptable.lock);
-}
-/////////////
-
 void
 scheduler(void)
 {
@@ -440,11 +415,6 @@ void add_new_process_to_queues(void)
     if(p->state != RUNNABLE)
       continue;
 
-    ///////////
-    if(p->pid < 3)
-      continue;
-    /////
-
     int found = 0;
     for(int i = 0; i < NQUEUE; i++){
       struct Queue* queue = &schedulingQueues[i];
@@ -466,10 +436,6 @@ void add_new_process_to_queues(void)
     p->HRRNpriority = 1;
     p->queueIndex = LCFS_QUEUE_INDEX;
     p->age = 0;
-    //////////////////////
-    cprintf("Add process : %d\n", p->pid);
-    //panic("add process");
-    /////////////////   
     enqueue(LCFS_QUEUE_INDEX, p);
   }
   release(&ptable.lock);

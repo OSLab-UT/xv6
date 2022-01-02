@@ -12,6 +12,7 @@ struct cpu {
 
 extern struct cpu cpus[NCPU];
 extern int ncpu;
+extern struct semaphore sems[NSEM];
 
 //PAGEBREAK: 17
 // Saved registers for kernel context switches.
