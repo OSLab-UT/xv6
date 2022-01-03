@@ -146,7 +146,6 @@ sys_changeprocessqueue(void)
     return -1;
   if(process->queueIndex >= NQUEUE || process->queueIndex < 0)
     return -1;
-  //int procQueueFront = getSchedulingQueueFront(process->queueIndex);
   process->age = 0;
   int index = getProcessIndexInQueue(process->queueIndex, process);
   index_dequeue_help(process->queueIndex, index);

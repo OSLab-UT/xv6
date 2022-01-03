@@ -47,7 +47,6 @@ int main(){
         else if(pid > 0){
             argv[1] = intToString(i);
             argv[2] = names[i];
-            //printf(1, "%s , %s , %s ,\n", argv[0], argv[1], argv[2]);
             exec("philosopher", argv);
             printf(2, "exec philosopher failed.\n");
             exit();
