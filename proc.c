@@ -861,7 +861,7 @@ struct proc* index_dequeue_help(int queueIndex, int procIndex)
 }
 
 void
-sem_init(int i, int v)
+sem_init_kernel(int i, int v)
 {
   sems[i].max = v;
   sems[i].locked = 0;
@@ -875,10 +875,13 @@ sem_init(int i, int v)
   // sems[i].name = "semaophre number i"
 }
 
-uint
-sem_acquire(int i)
+int
+sem_acquire_kernel(int i, int pid)
 {
   if(sems[i].locked){
+    sems[i].wait_num += 1;
+    sems[i].wait[sems[i].wait_last] = pid;
+    sems[i].wait_last = (sems[i].wait_last + 1) % NPIS;
     return 0;
   }
   sems[i].run_num += 1;
@@ -889,7 +892,7 @@ sem_acquire(int i)
 }
 
 int
-sem_release(int i)
+sem_release_kernel(int i)
 {
   if(sems[i].wait_num){
     sems[i].wait_num -= 1;
@@ -898,7 +901,7 @@ sem_release(int i)
     return proc;
   }
   sems[i].locked = 0;
-  sems[i].run_num -= 1
+  sems[i].run_num -= 1;
   return -1;
 }
 

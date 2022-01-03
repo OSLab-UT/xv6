@@ -141,7 +141,9 @@ void            add_new_process_to_queues(void);
 int             getProcessIndexInQueue(int queueIndex, struct proc* process);
 struct proc*    index_dequeue(struct Queue* queue, int index);
 struct proc*    index_dequeue_help(int queueIndex, int procIndex);
-
+void            sem_init_kernel(int i, int v);
+int             sem_acquire_kernel(int i, int pid);
+int             sem_release_kernel(int i);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

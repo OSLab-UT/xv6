@@ -28,3 +28,6 @@
 #define SYS_printallprocesses 27
 #define SYS_setMHRRNprocessspace 28
 #define SYS_setMHRRNkernelspace 29
+#define SYS_sem_init 30
+#define SYS_sem_acquaire 31
+#define SYS_sem_release 32
