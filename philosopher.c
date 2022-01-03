@@ -1,11 +1,17 @@
 #include "types.h"
 #include "user.h"
 
-#define MAX_ROUNDS 10
-#define TIME 1000
+#define MAX_ROUNDS 100
+#define TIME 100
 
 int main(int argc, char* argv[])
 {
+    if(argc < 3)
+    {
+        printf(2, "Usage: number and name of philosopher.\n");
+        exit();
+    }
+    printf(1, "%s.\n",argv[0]);
     int num = atoi(argv[1]);
     int first, last;
     if(num % 2 == 0){
