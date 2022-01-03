@@ -206,7 +206,7 @@ sys_sem_acquire(void)
   
   int flag = sem_acquire_kernel(i, myproc()->pid);
 
-  if(falg == 0){
+  if(flag == 0){
     myproc()->state = SLEEPING;
   }
   return 0;
