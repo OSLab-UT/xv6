@@ -1,10 +1,8 @@
-#include "unistd.h"
+#include "types.h"
 #include "user.h"
 
 #define MAX_ROUNDS 10
-#define TIME 1
-
-enum pstate { THINKING, EATTING, HUNGRY, FINISHED};
+#define TIME 1000
 
 int main(int argc, char* argv[])
 {
@@ -19,28 +17,23 @@ int main(int argc, char* argv[])
         first = (num + 1) % 5;
     }
     char* name = argv[2];
-    enum pstate state;
-<<<<<<< HEAD
-    counter = 0;
+    int counter = 0;
     while(counter < MAX_ROUNDS){
-=======
-    while(1){
->>>>>>> 843daaea2b5972c0a29d3f72b56c2d02b000309d
-        state = THINKING;
-        printf("%s is thinking.\n", name);
+        //state = THINKING;
+        printf(1, "%s is thinking.\n", name);
         sleep(TIME);
-        state = HUNGRY;
-        printf("%s is hungry.\n", name);
+        //state = HUNGRY;
+        printf(1, "%s is hungry.\n", name);
         // get semaphores  
         sem_acquire(first);
-        print("%s get fork %d.\n", name, first);
+        printf(1, "%s get fork %d.\n", name, first);
         sem_acquire(last);
-        print("%s get fork %d.\n", name, last);
-        state = EATTING;
-        print("%s start eatting.\n", name);
+        printf(1, "%s get fork %d.\n", name, last);
+        //state = EATTING;
+        printf(1, "%s start eatting.\n", name);
         sleep(TIME);
-        print("%s finish eatting.\n", name);
-        state = FINISHED;
+        printf(1, "%s finish eatting.\n", name);
+        //state = FINISHED;
         sem_release(first);
         sem_release(last);
         counter++;
