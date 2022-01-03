@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     }
     char* name = argv[2];
     enum pstate state;
-    while(true){
+    while(1){
         state = THINKING;
         printf("%s is thinking.\n", name);
         sleep(1);
