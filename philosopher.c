@@ -1,12 +1,10 @@
 #include "unistd.h"
 #include "user.h"
 
+#define MAX_ROUNDS 10
+#define TIME 1
+
 enum pstate { THINKING, EATTING, HUNGRY, FINISHED};
-
-
-
-
-
 
 int main(int argc, char* argv[])
 {
@@ -22,10 +20,11 @@ int main(int argc, char* argv[])
     }
     char* name = argv[2];
     enum pstate state;
-    while(true){
+    counter = 0;
+    while(counter < MAX_ROUNDS){
         state = THINKING;
         printf("%s is thinking.\n", name);
-        sleep(1);
+        sleep(TIME);
         state = HUNGRY;
         printf("%s is hungry.\n", name);
         // get semaphores  
@@ -35,10 +34,12 @@ int main(int argc, char* argv[])
         print("%s get fork %d.\n", name, last);
         state = EATTING;
         print("%s start eatting.\n", name);
-        sleep(1);
+        sleep(TIME);
         print("%s finish eatting.\n", name);
         state = FINISHED;
         sem_release(first);
         sem_release(last);
+        counter++;
     }
+    exit();
 }
