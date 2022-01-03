@@ -20,8 +20,12 @@ int main(int argc, char* argv[])
     }
     char* name = argv[2];
     enum pstate state;
+<<<<<<< HEAD
     counter = 0;
     while(counter < MAX_ROUNDS){
+=======
+    while(1){
+>>>>>>> 843daaea2b5972c0a29d3f72b56c2d02b000309d
         state = THINKING;
         printf("%s is thinking.\n", name);
         sleep(TIME);
