@@ -31,6 +31,9 @@ int changeprocessqueue(int, int);
 int printallprocesses(void);
 int setMHRRNprocessspace(int);
 int setMHRRNkernelspace(int, int);
+int sem_init(int, int);
+int sem_acquire(int);
+int sem_release(int);
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -34,6 +34,10 @@ acquiresleep(struct sleeplock *lk)
 void
 releasesleep(struct sleeplock *lk)
 {
+  if(!holdingsleep(lk))
+  {
+    panic("releasesleep");
+  }
   acquire(&lk->lk);
   lk->locked = 0;
   lk->pid = 0;

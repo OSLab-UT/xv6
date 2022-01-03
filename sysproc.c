@@ -146,7 +146,6 @@ sys_changeprocessqueue(void)
     return -1;
   if(process->queueIndex >= NQUEUE || process->queueIndex < 0)
     return -1;
-  //int procQueueFront = getSchedulingQueueFront(process->queueIndex);
   process->age = 0;
   int index = getProcessIndexInQueue(process->queueIndex, process);
   index_dequeue_help(process->queueIndex, index);
@@ -183,5 +182,51 @@ sys_setMHRRNkernelspace(void)
   if(p == 0)
     return -1;
   p->HRRNpriority = MHRRNfactor;
+  return 0;
+}
+
+int
+sys_sem_init(void)
+{
+  int i, v;
+  if(argint(0, &i) < 0 || argint(1, &v) < 0)
+    return -1;
+  
+  sem_init_kernel(i, v);
+  return 0;
+}
+
+int
+sys_sem_acquire(void)
+{
+  int i;
+  if(argint(0, &i) < 0)
+    return -1;
+  
+  int flag = sem_acquire_kernel(i, myproc()->pid);
+
+  if(flag == 0){
+    myproc()->state = SLEEPING;
+  }
+  return 0;
+}
+
+int
+sys_sem_release(void)
+{
+  int i;
+  if(argint(0, &i) < 0)
+    return -1;
+  
+  int pid = sem_release_kernel(i);
+
+  if(pid != -1){
+    struct proc* process = findprocbypid(pid);
+    if(process == 0)
+      return -1;
+    if(process->queueIndex >= NQUEUE || process->queueIndex < 0)
+      return -1;
+    process->state = RUNNABLE;
+  }
   return 0;
 }

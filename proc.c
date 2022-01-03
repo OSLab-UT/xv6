@@ -6,12 +6,8 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-//////////////////////
-// #include "stdio.h"
-////////////////////
 
-//struct Queue LCFS_queue;
-//struct Queue RR_scheduler;
+struct semaphore sems[NSEM];
 
 struct Queue {
   int front, rear, size;
@@ -350,28 +346,6 @@ wait(void)
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
 
-//////////////
-void run_first_proc(struct cpu *c){
-  struct proc *p;
-  
-  acquire(&ptable.lock);
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->state != RUNNABLE)
-      continue;
-
-    if(p->pid < 3){
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-      c->proc = 0;
-    }
-  }    
-  release(&ptable.lock);
-}
-/////////////
-
 void
 scheduler(void)
 {
@@ -440,11 +414,6 @@ void add_new_process_to_queues(void)
     if(p->state != RUNNABLE)
       continue;
 
-    ///////////
-    if(p->pid < 3)
-      continue;
-    /////
-
     int found = 0;
     for(int i = 0; i < NQUEUE; i++){
       struct Queue* queue = &schedulingQueues[i];
@@ -466,10 +435,6 @@ void add_new_process_to_queues(void)
     p->HRRNpriority = 1;
     p->queueIndex = LCFS_QUEUE_INDEX;
     p->age = 0;
-    //////////////////////
-    cprintf("Add process : %d\n", p->pid);
-    //panic("add process");
-    /////////////////   
     enqueue(LCFS_QUEUE_INDEX, p);
   }
   release(&ptable.lock);
@@ -894,3 +859,45 @@ struct proc* index_dequeue_help(int queueIndex, int procIndex)
 {
   return index_dequeue(&schedulingQueues[queueIndex], procIndex);
 }
+
+void
+sem_init_kernel(int i, int v)
+{
+  sems[i].max = v;
+  sems[i].locked = 0;
+  sems[i].run_num = 0;
+  sems[i].wait_first = 0;
+  sems[i].wait_last = 0;
+  sems[i].wait_num = 0;
+}
+
+int
+sem_acquire_kernel(int i, int pid)
+{
+  if(sems[i].locked){
+    sems[i].wait_num += 1;
+    sems[i].wait[sems[i].wait_last] = pid;
+    sems[i].wait_last = (sems[i].wait_last + 1) % NPIS;
+    return 0;
+  }
+  sems[i].run_num += 1;
+  if(sems[i].run_num >= sems[i].max){
+    sems[i].locked = 1;
+  }
+  return 1;
+}
+
+int
+sem_release_kernel(int i)
+{
+  if(sems[i].wait_num){
+    sems[i].wait_num -= 1;
+    int proc = sems[i].wait[sems[i].wait_first];
+    sems[i].wait_first = (sems[i].wait_first + 1) % NPIS;
+    return proc;
+  }
+  sems[i].locked = 0;
+  sems[i].run_num -= 1;
+  return -1;
+}
+

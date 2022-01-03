@@ -111,6 +111,9 @@ extern int sys_changeprocessqueue(void);
 extern int sys_printallprocesses(void);
 extern int sys_setMHRRNprocessspace(void);
 extern int sys_setMHRRNkernelspace(void);
+extern int sys_sem_init(void);
+extern int sys_sem_acquire(void);
+extern int sys_sem_release(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -141,7 +144,10 @@ static int (*syscalls[])(void) = {
 [SYS_changeprocessqueue] sys_changeprocessqueue,
 [SYS_printallprocesses] sys_printallprocesses,
 [SYS_setMHRRNprocessspace] sys_setMHRRNprocessspace,
-[SYS_setMHRRNkernelspace] sys_setMHRRNkernelspace
+[SYS_setMHRRNkernelspace] sys_setMHRRNkernelspace,
+[SYS_sem_init] sys_sem_init,
+[SYS_sem_acquire] sys_sem_acquire,
+[SYS_sem_release] sys_sem_release
 };
 
 void
