@@ -188,6 +188,7 @@ UPROGS=\
 	_testdebugger\
 	_philosopher\
 	_dining_philosophers\
+	_getfreepagescount\
 
 fs.img: mkfs README inputtestfile1.txt inputtestfile2.txt inputtestfile3.txt $(UPROGS)
 	./mkfs fs.img README inputtestfile1.txt inputtestfile2.txt inputtestfile3.txt $(UPROGS)
@@ -259,7 +260,7 @@ EXTRA=\
 	ln.c ls.c mkdir.c rm.c stressfs.c factor.c usertests.c wc.c zombie.c\
 	printf.c umalloc.c sumofdigits.c getfilesectors.c\
 	testdebuggingchild.c testdebugger.c\
-	philosopher.c dining_philosophers.c\
+	philosopher.c dining_philosophers.c getfreepagescount.c\
 	inputtestfile1.txt inputtestfile2.txt inputtestfile3.txt\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\

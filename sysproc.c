@@ -230,3 +230,9 @@ sys_sem_release(void)
   }
   return 0;
 }
+
+int
+sys_get_free_pages_count(void)
+{
+  return get_free_pages_count();
+}

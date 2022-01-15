@@ -34,6 +34,7 @@ int setMHRRNkernelspace(int, int);
 int sem_init(int, int);
 int sem_acquire(int);
 int sem_release(int);
+int get_free_pages_count(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

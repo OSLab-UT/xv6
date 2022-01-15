@@ -114,6 +114,7 @@ extern int sys_setMHRRNkernelspace(void);
 extern int sys_sem_init(void);
 extern int sys_sem_acquire(void);
 extern int sys_sem_release(void);
+extern int sys_get_free_pages_count(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -147,7 +148,8 @@ static int (*syscalls[])(void) = {
 [SYS_setMHRRNkernelspace] sys_setMHRRNkernelspace,
 [SYS_sem_init] sys_sem_init,
 [SYS_sem_acquire] sys_sem_acquire,
-[SYS_sem_release] sys_sem_release
+[SYS_sem_release] sys_sem_release,
+[SYS_get_free_pages_count] sys_get_free_pages_count
 };
 
 void
